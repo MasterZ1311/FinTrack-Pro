@@ -4,12 +4,14 @@
  */
 
 import './styles/base.css';
-import { migrate, getAll, getById } from './db.js';
+import { migrate, getAll } from './db.js';
 import { initRouter } from './router.js';
 import { store } from './store.js';
 import { processRecurring } from './modules/transactions/recurring.js';
 import { initSidebar } from './modules/dashboard/sidebar.js';
 import { initTopbar } from './modules/dashboard/topbar.js';
+import { credentialVault } from './services/credential-vault.js';
+import { privacyManager } from './services/privacy-manager.js';
 
 // ─── App Initialization ──────────────────────────────────────────────────────
 
@@ -20,6 +22,10 @@ async function bootstrap() {
     // 1. Run localStorage → IndexedDB migration (idempotent)
     await migrate();
     console.log('[FinTrack] Migration check complete.');
+
+    // 1b. Initialize secure credential vault & privacy manager
+    await credentialVault.init();
+    await privacyManager.init();
 
     // 2. Load profile from DB into store
     const profiles = await getAll('profiles');

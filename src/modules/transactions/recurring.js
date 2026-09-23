@@ -26,17 +26,22 @@ function addInterval(date, rule) {
     case 'weekly':
       d.setDate(d.getDate() + 7 * interval);
       break;
-    case 'monthly':
+    case 'monthly': {
+      const targetDay = dayOfMonth || d.getDate();
+      d.setDate(1);
       d.setMonth(d.getMonth() + interval);
-      if (dayOfMonth) {
-        // Snap to requested day, clamped to last day of month
-        const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-        d.setDate(Math.min(dayOfMonth, lastDay));
-      }
+      const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      d.setDate(Math.min(targetDay, lastDay));
       break;
-    case 'quarterly':
+    }
+    case 'quarterly': {
+      const targetDay = dayOfMonth || d.getDate();
+      d.setDate(1);
       d.setMonth(d.getMonth() + 3 * interval);
+      const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      d.setDate(Math.min(targetDay, lastDay));
       break;
+    }
     case 'yearly':
       d.setFullYear(d.getFullYear() + interval);
       break;

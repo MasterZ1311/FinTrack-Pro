@@ -9,6 +9,27 @@ const ALGORITHM = 'AES-GCM';
 const KEY_LENGTH = 256;
 const IV_LENGTH = 12; // 96 bits for AES-GCM
 
+export class CryptoError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'CryptoError';
+  }
+}
+
+export class InvalidPassphraseError extends CryptoError {
+  constructor(message = 'Decryption failed: invalid passphrase or corrupted data.') {
+    super(message);
+    this.name = 'InvalidPassphraseError';
+  }
+}
+
+export class CorruptedCiphertextError extends CryptoError {
+  constructor(message = 'Ciphertext payload is invalid or corrupted.') {
+    super(message);
+    this.name = 'CorruptedCiphertextError';
+  }
+}
+
 // ─── Key Management ───────────────────────────────────────────────────────────
 
 /**
@@ -18,6 +39,9 @@ const IV_LENGTH = 12; // 96 bits for AES-GCM
  * @returns {Promise<CryptoKey>}
  */
 export async function deriveKey(passphrase, salt) {
+  if (!passphrase || typeof passphrase !== 'string') {
+    throw new CryptoError('Passphrase must be a non-empty string.');
+  }
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -59,6 +83,13 @@ export function generateSalt() {
  * @returns {Promise<{ iv: string, salt: string, data: string }>}
  */
 export async function encrypt(plaintext, passphrase) {
+  if (plaintext == null || typeof plaintext !== 'string') {
+    throw new CryptoError('Plaintext must be a string.');
+  }
+  if (!passphrase || typeof passphrase !== 'string') {
+    throw new CryptoError('Passphrase must be a non-empty string.');
+  }
+
   const encoder = new TextEncoder();
   const salt = generateSalt();
   const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
@@ -84,18 +115,46 @@ export async function encrypt(plaintext, passphrase) {
  * @returns {Promise<string>}
  */
 export async function decrypt(encryptedObj, passphrase) {
-  const iv = base64ToBuffer(encryptedObj.iv);
-  const salt = base64ToBuffer(encryptedObj.salt);
-  const data = base64ToBuffer(encryptedObj.data);
-  const key = await deriveKey(passphrase, salt);
+  if (!encryptedObj || typeof encryptedObj !== 'object') {
+    throw new CorruptedCiphertextError('Invalid encrypted payload object.');
+  }
+  if (!encryptedObj.iv || !encryptedObj.salt || !encryptedObj.data) {
+    throw new CorruptedCiphertextError('Encrypted payload is missing required iv, salt, or data.');
+  }
+  if (!passphrase || typeof passphrase !== 'string') {
+    throw new InvalidPassphraseError('Passphrase is required for decryption.');
+  }
 
-  const decrypted = await crypto.subtle.decrypt(
-    { name: ALGORITHM, iv },
-    key,
-    data
-  );
+  let iv, salt, data;
+  try {
+    iv = base64ToBuffer(encryptedObj.iv);
+    salt = base64ToBuffer(encryptedObj.salt);
+    data = base64ToBuffer(encryptedObj.data);
+  } catch (err) {
+    throw new CorruptedCiphertextError(`Base64 decoding failed: ${err.message}`);
+  }
 
-  return new TextDecoder().decode(decrypted);
+  if (iv.length !== IV_LENGTH || salt.length < 16 || data.length === 0) {
+    throw new CorruptedCiphertextError('Invalid cryptographic parameter lengths in payload.');
+  }
+
+  let key;
+  try {
+    key = await deriveKey(passphrase, salt);
+  } catch (err) {
+    throw new CryptoError(`Key derivation failed: ${err.message}`);
+  }
+
+  try {
+    const decrypted = await crypto.subtle.decrypt(
+      { name: ALGORITHM, iv },
+      key,
+      data
+    );
+    return new TextDecoder().decode(decrypted);
+  } catch {
+    throw new InvalidPassphraseError('Decryption authentication failed: wrong passphrase or modified ciphertext.');
+  }
 }
 
 // ─── Utility ──────────────────────────────────────────────────────────────────
@@ -105,12 +164,12 @@ export async function decrypt(encryptedObj, passphrase) {
  * @param {Uint8Array} buffer
  * @returns {string}
  */
-function bufferToBase64(buffer) {
+export function bufferToBase64(buffer) {
   let binary = '';
   for (const byte of buffer) {
     binary += String.fromCharCode(byte);
   }
-  return btoa(binary);
+  return (typeof globalThis.btoa === 'function' ? globalThis.btoa(binary) : Buffer.from(binary, 'binary').toString('base64'));
 }
 
 /**
@@ -118,8 +177,8 @@ function bufferToBase64(buffer) {
  * @param {string} base64
  * @returns {Uint8Array}
  */
-function base64ToBuffer(base64) {
-  const binary = atob(base64);
+export function base64ToBuffer(base64) {
+  const binary = (typeof globalThis.atob === 'function' ? globalThis.atob(base64) : Buffer.from(base64, 'base64').toString('binary'));
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
@@ -134,4 +193,9 @@ export default {
   decrypt,
   deriveKey,
   generateSalt,
+  bufferToBase64,
+  base64ToBuffer,
+  CryptoError,
+  InvalidPassphraseError,
+  CorruptedCiphertextError,
 };

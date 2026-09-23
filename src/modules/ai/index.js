@@ -1,6 +1,7 @@
 import { isAvailable, complete } from '../../services/ai-engine.js';
 import { renderHealthScoreSVG, calculateFinancialHealth as calculateHealthScore } from './health-score.js';
 import { generateInsights } from './insights.js';
+import { privacyManager, PRIVACY_MODES } from '../../services/privacy-manager.js';
 
 export function createFinBotUI(containerElement) {
   const wrapper = document.createElement('div');
@@ -56,7 +57,10 @@ export function createFinBotUI(containerElement) {
     </button>
     <div class="finbot-panel" id="finbotPanel">
       <div class="finbot-header">
-        <span>FinBot ✨</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span>FinBot ✨</span>
+          <span id="finbotPrivacyBadge" style="font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(255,255,255,0.25);">🔒 Local</span>
+        </div>
         <button class="close-btn" id="finbotClose">×</button>
       </div>
       <div class="finbot-messages" id="finbotMessages">
@@ -92,6 +96,22 @@ function initFinBotEvents() {
 
   const updateStatus = () => {
     const tier = isAvailable();
+    const mode = privacyManager.getMode();
+    const privacyBadge = document.getElementById('finbotPrivacyBadge');
+
+    if (privacyBadge) {
+      if (mode === PRIVACY_MODES.LOCAL_ONLY) {
+        privacyBadge.textContent = '🔒 Local Only';
+        privacyBadge.title = 'Financial data never leaves your device.';
+      } else if (mode === PRIVACY_MODES.PRIVACY_ENHANCED) {
+        privacyBadge.textContent = '🛡️ Enhanced';
+        privacyBadge.title = 'External AI blocked; rates enabled.';
+      } else {
+        privacyBadge.textContent = '🌐 External AI';
+        privacyBadge.title = 'Sanitized aggregate summary sent to AI provider.';
+      }
+    }
+
     if (tier === 'webllm') statusBadge.textContent = 'Gemma 2B ✓';
     else if (tier === 'api') statusBadge.textContent = 'API ✓';
     else statusBadge.textContent = 'Basic';

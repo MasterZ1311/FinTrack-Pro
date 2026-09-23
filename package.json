@@ -6,10 +6,25 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "playwright test",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint ."
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "@vitest/coverage-v8": "^5.0.1",
+    "axe-core": "^4.13.0",
+    "eslint": "^10.11.0",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^29.1.1",
     "vite": "^8.2.0",
+    "vitest": "^5.0.1",
     "workbox-cli": "^7.4.1"
   },
   "dependencies": {

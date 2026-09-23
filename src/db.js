@@ -7,7 +7,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'fintrack-pro';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 /** @type {import('idb').IDBPDatabase | null} */
 let dbInstance = null;
@@ -17,7 +17,7 @@ let dbInstance = null;
 const REQUIRED_STORES = [
   'profiles', 'transactions', 'accounts', 'investments',
   'budgets', 'categories', 'bankProfiles', 'aiCache',
-  'exchangeRates', 'settings'
+  'exchangeRates', 'settings', 'credentials'
 ];
 
 function upgradeSchema(db) {
@@ -73,6 +73,11 @@ function upgradeSchema(db) {
   // settings — key-value store for app settings
   if (!db.objectStoreNames.contains('settings')) {
     db.createObjectStore('settings', { keyPath: 'key' });
+  }
+
+  // credentials — encrypted API keys and secrets at rest
+  if (!db.objectStoreNames.contains('credentials')) {
+    db.createObjectStore('credentials', { keyPath: 'id' });
   }
 }
 
