@@ -10,7 +10,7 @@ export async function resetDatabase() {
   const stores = [
     'profiles', 'transactions', 'accounts', 'investments',
     'budgets', 'categories', 'bankProfiles', 'aiCache',
-    'exchangeRates', 'settings'
+    'exchangeRates', 'settings', 'credentials'
   ];
 
   for (const storeName of stores) {

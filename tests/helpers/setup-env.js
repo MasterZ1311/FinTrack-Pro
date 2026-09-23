@@ -13,9 +13,9 @@ if (!globalThis.crypto || !globalThis.crypto.subtle) {
 }
 
 // In-memory mock localStorage if not provided by jsdom
-if (!globalThis.localStorage || typeof globalThis.localStorage.setItem !== 'function') {
+function createStorageMock() {
   const storage = new Map();
-  globalThis.localStorage = {
+  return {
     getItem: (key) => (storage.has(key) ? storage.get(key) : null),
     setItem: (key, value) => storage.set(key, String(value)),
     removeItem: (key) => storage.delete(key),
@@ -27,9 +27,18 @@ if (!globalThis.localStorage || typeof globalThis.localStorage.setItem !== 'func
   };
 }
 
+if (!globalThis.localStorage || typeof globalThis.localStorage.setItem !== 'function') {
+  globalThis.localStorage = createStorageMock();
+}
+
+if (!globalThis.sessionStorage || typeof globalThis.sessionStorage.setItem !== 'function') {
+  globalThis.sessionStorage = createStorageMock();
+}
+
 beforeEach(() => {
-  // Clear localStorage before each test
+  // Clear storage before each test
   localStorage.clear();
+  sessionStorage.clear();
 });
 
 afterEach(() => {
