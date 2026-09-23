@@ -1,4 +1,5 @@
 import { getById, update } from '../db.js';
+import { guardFetch, canMakeRequest } from './network-guard.js';
 
 export const CURRENCIES = [
   { code: 'INR', name: 'Indian Rupee', symbol: '₹', locale: 'en-IN', decimals: 2 },
@@ -152,7 +153,19 @@ export async function fetchExchangeRates(baseCurrency) {
       return ratesCache.rates;
     }
 
-    const response = await fetch(`https://open.er-api.com/v6/latest/${baseCurrency}`);
+    if (!canMakeRequest('exchange_rate')) {
+      if (cachedData) {
+        ratesCache = { base: baseCurrency, rates: cachedData.rates };
+        return cachedData.rates;
+      }
+      return null;
+    }
+
+    const response = await guardFetch(
+      `https://open.er-api.com/v6/latest/${baseCurrency}`,
+      {},
+      { category: 'exchange_rate', description: 'Exchange rate refresh' }
+    );
     if (!response.ok) {
       throw new Error(`Failed to fetch rates: ${response.statusText}`);
     }
@@ -167,7 +180,7 @@ export async function fetchExchangeRates(baseCurrency) {
     ratesCache = { base: baseCurrency, rates: data.rates };
     return data.rates;
   } catch (error) {
-    console.warn('[Currency Service] Error fetching rates, falling back to cache if available.', error);
+    console.warn('[Currency Service] Error fetching rates, falling back to cache if available.', error.message || error);
     const cachedData = await getById('exchangeRates', baseCurrency);
     if (cachedData) {
       ratesCache = { base: baseCurrency, rates: cachedData.rates };
