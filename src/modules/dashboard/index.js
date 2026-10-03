@@ -328,6 +328,7 @@ export function renderDashboard(container) {
   }
 }
 
+export { calculateKPIs, renderRecentTransactions, renderBudgetOverview };
 export default {
   render(container) {
     renderDashboard(container);

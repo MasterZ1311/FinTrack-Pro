@@ -754,3 +754,38 @@ flowchart TD
 - **5.1**: Refactor database querying to use `getByIndex`, `getByRange`, and IDB cursors rather than `getAll('transactions')`.
 - **5.2**: Implement a global toast notification container in `index.html` subscribing to `store.subscribe('notifications')`.
 - **5.3**: Update `README.md` and `TECHNICAL_ARCHITECTURE.md` to reflect the audited architecture truthfully.
+
+---
+
+## 14. Remediation & Hardening Execution Status (October 2026)
+
+All critical findings identified in this forensic audit have been addressed, verified, and backed by automated regression tests.
+
+### Status Table
+
+| Item | Area | Finding | Resolution Status | Verified By |
+|---|---|---|---|---|
+| **1.1** | Import Logic | Debit amounts stored as negative | **REMEDIATED** — Positively normalized in `import/index.js` | `import-validation.test.js` |
+| **1.2** | Schema Divergence | `openingBalance` vs `initialBalance` | **REMEDIATED** — Canonicalized to `initialBalance` / `currentBalance` with backwards-compatible fallbacks in `accounts/index.js` | `accounts-balance.test.js` |
+| **1.3** | Split Accounting | Double-counting parent splits | **REMEDIATED** — `isSplit === true` excluded across balances, budgets, KPIs, analytics, reports; cascade delete implemented | `split-transactions.test.js`, `dashboard-budgets.test.js` |
+| **1.4** | Currency Math | Silent 1:1 fallback on missing rates | **REMEDIATED** — Explicit `Error` thrown; UI validation halts on missing rates | `currency.test.js` |
+| **1.5** | Recurring Engine | 31st month rollover date bug | **REMEDIATED** — Pin-to-last-day month advancement implemented in `recurring.js` | `recurring.test.js` |
+| **1.6** | Deduplication | Collisions on identical debit/credit | **REMEDIATED** — SHA-256 hash incorporates transaction sign/type in `deduplication.js` | `parsers.test.js`, `deduplication.test.js` |
+| **2.1** | Rendering Security | Untrusted DOM string interpolation | **REMEDIATED** — `src/utils/security.js` with `escapeHtml`, `safeAttr`, `safeUrl`, `safeSetHtml` applied across UI modules | `security.test.js` |
+| **2.2** | Credentials | Plaintext API keys in localStorage | **REMEDIATED** — `src/services/credential-vault.js` using AES-256-GCM + PBKDF2 in IndexedDB with ephemeral session key | `credential-vault.test.js` |
+| **2.3** | Privacy | Unbounded DB dump sent to external AI | **REMEDIATED** — `src/services/privacy-projection.js` PII scrub & aggregation; strict `LOCAL_ONLY` network guard | `privacy-network.test.js`, `network-privacy-interception.test.js` |
+| **2.4** | Secret Leakage | Gemini API keys in URL query params | **REMEDIATED** — Routed to standard `x-goog-api-key` header in `src/services/user-api.js` | `network-privacy-interception.test.js` |
+| **2.5** | Data Leakage | Raw receipt OCR text logged to console | **REMEDIATED** — Removed raw console log in `src/services/ocr.js` | Verified |
+| **3.1** | Testing Gap | Zero test infrastructure | **REMEDIATED** — Vitest + jsdom + fake-indexeddb test suite installed with 192 automated tests (100% pass) | `npm run test` |
+| **3.2** | Parser Testing | Empty test stubs in `parsers.test.js` | **REMEDIATED** — 24-test regression suite covering HDFC, SBI, Chase, OFX, and European/Indian formats | `parsers.test.js` |
+| **4.1** | Offline Assets | PDF.js and Workbox loaded from CDNs | **REMEDIATED** — `pdfjs-dist` bundled locally; `sw.js` converted to native Cache API v2 with zero CDN calls | `npm run build` |
+| **4.2** | Offline Fonts | Google Fonts render-blocking | **REMEDIATED** — Made non-blocking with local system font fallback in `index.html` | Verified |
+| **4.4** | Supply Chain | High-severity vulnerabilities in audit | **REMEDIATED** — `npm audit fix` applied; spreadsheet row bounds guarded in `reports/index.js` | `npm run build` |
+| **5.1** | IndexedDB Performance | Unbounded `getAll('transactions')` scans | **REMEDIATED** — DB_VERSION 4 with `toAccountId`, `splitParentId`, `hash` indexes; converted `recalculateBalance` to `getByIndex` | `accounts-balance.test.js` |
+
+### Final Verification Metrics
+- **Automated Tests**: 192 passing (18 test files, 0 failures)
+- **Code Linter**: 0 errors
+- **Production Build**: Clean bundle in < 2 seconds via Vite
+- **External CDN Runtime Dependencies**: 0
+

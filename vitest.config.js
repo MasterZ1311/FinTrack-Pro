@@ -21,8 +21,12 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       reportOnFailure: true,
-      include: ['src/**'],
-      exclude: ['src/services/webllm-loader.js', 'src/services/user-api.js'],
+      include: ['src/**/*.js'],
+      exclude: [
+        'src/services/webllm-loader.js',
+        'src/services/user-api.js',
+        'src/parsers/__tests__/**',
+      ],
     },
   },
 });

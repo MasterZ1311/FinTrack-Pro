@@ -428,4 +428,5 @@ export async function parseBankPDF(arrayBuffer, bankProfile = null) {
   }
 }
 
-export default { parseBankPDF };
+export { groupIntoRows, findTableHeader, classifyColumn, regexFallback };
+export default { parseBankPDF, groupIntoRows, findTableHeader, classifyColumn, regexFallback };
