@@ -1,78 +1,78 @@
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox-sw.js');
+/**
+ * FinTrack Pro — Self-Contained Offline Service Worker
+ * Uses native browser Cache API with zero external CDN dependencies.
+ */
 
-if (workbox) {
-  console.log(`[PWA] Workbox is loaded 🎉`);
+const CACHE_VERSION = 'v2';
+const ASSET_CACHE = `fintrack-assets-${CACHE_VERSION}`;
+const IMAGE_CACHE = `fintrack-images-${CACHE_VERSION}`;
 
-  // Cache HTML, CSS, JS using StaleWhileRevalidate
-  workbox.routing.registerRoute(
-    ({ request }) => request.destination === 'document' || 
-                     request.destination === 'style' || 
-                     request.destination === 'script',
-    new workbox.strategies.StaleWhileRevalidate({
-      cacheName: 'fintrack-assets-v1',
-      plugins: [
-        new workbox.expiration.ExpirationPlugin({
-          maxEntries: 100,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
-        }),
-      ],
-    })
-  );
+const PRECACHE_URLS = [
+  './',
+  './index.html',
+  './manifest.json'
+];
 
-  // Cache images using CacheFirst
-  workbox.routing.registerRoute(
-    ({ request }) => request.destination === 'image',
-    new workbox.strategies.CacheFirst({
-      cacheName: 'fintrack-images-v1',
-      plugins: [
-        new workbox.expiration.ExpirationPlugin({
-          maxEntries: 50,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
-        }),
-      ],
-    })
-  );
-
-  // Fallback for everything else
-  workbox.routing.setDefaultHandler(
-    new workbox.strategies.NetworkFirst()
-  );
-
-} else {
-  console.warn(`[PWA] Workbox didn't load 😬`);
-  
-  // Basic fallback if Workbox fails to load
-  self.addEventListener('fetch', (event) => {
-    event.respondWith(
-      caches.match(event.request).then((response) => {
-        return response || fetch(event.request);
-      })
-    );
-  });
-}
-
-// Precache base files on install
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open('fintrack-assets-v1').then((cache) => {
-      return cache.addAll([
-        './',
-        './index.html',
-        './manifest.json'
-      ]);
-    })
+    caches.open(ASSET_CACHE).then((cache) => cache.addAll(PRECACHE_URLS))
   );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== 'fintrack-assets-v1' && key !== 'fintrack-images-v1')
-            .map((key) => caches.delete(key))
-      );
-    })
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((k) => k !== ASSET_CACHE && k !== IMAGE_CACHE)
+          .map((k) => caches.delete(k))
+      )
+    )
   );
   self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+
+  // Images: CacheFirst strategy
+  if (request.destination === 'image' || url.pathname.match(/\.(png|jpg|jpeg|svg|webp|ico)$/)) {
+    event.respondWith(
+      caches.open(IMAGE_CACHE).then(async (cache) => {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        try {
+          const networkResponse = await fetch(request);
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(request, networkResponse.clone());
+          }
+          return networkResponse;
+        } catch (_err) {
+          return cached;
+        }
+      })
+    );
+    return;
+  }
+
+  // Scripts, Styles, Documents: StaleWhileRevalidate strategy
+  event.respondWith(
+    caches.open(ASSET_CACHE).then(async (cache) => {
+      const cached = await cache.match(request);
+      const networkFetch = fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            cache.put(request, response.clone());
+          }
+          return response;
+        })
+        .catch(() => cached);
+
+      return cached || networkFetch;
+    })
+  );
 });

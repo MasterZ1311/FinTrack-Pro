@@ -10,32 +10,28 @@ import { parseDate, parseDateAuto, parseAmount } from './csv-parser.js';
 
 // ─── PDF.js Loader ────────────────────────────────────────────────────────────
 
-const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168';
 let pdfjsLib = null;
 
 /**
- * Load PDF.js library from CDN (lazy, cached).
- * @returns {Promise<object>} pdfjsLib global
+ * Load PDF.js library from local bundle (lazy, cached).
+ * @returns {Promise<object>} pdfjsLib
  */
 async function loadPDFJS() {
   if (pdfjsLib) return pdfjsLib;
   
   // Check if already loaded globally
-  if (window.pdfjsLib) {
+  if (typeof window !== 'undefined' && window.pdfjsLib) {
     pdfjsLib = window.pdfjsLib;
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `${PDFJS_CDN}/pdf.worker.min.mjs`;
     return pdfjsLib;
   }
   
-  // Dynamically import from CDN
   try {
-    const module = await import(`${PDFJS_CDN}/pdf.min.mjs`);
+    const module = await import('pdfjs-dist');
     pdfjsLib = module;
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `${PDFJS_CDN}/pdf.worker.min.mjs`;
     return pdfjsLib;
   } catch (err) {
     console.error('[PDF Parser] Failed to load PDF.js:', err);
-    throw new Error('Failed to load PDF processing library. Check your internet connection.');
+    throw new Error('Failed to load PDF processing library.');
   }
 }
 
