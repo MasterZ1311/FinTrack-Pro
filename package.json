@@ -30,12 +30,14 @@
   "dependencies": {
     "@mlc-ai/web-llm": "^0.2.84",
     "chart.js": "^4.5.1",
+    "dompurify": "^3.2.4",
     "html2canvas": "^1.4.1",
     "idb": "^8.0.3",
     "jspdf": "^4.2.1",
     "lucide": "^1.28.0",
     "papaparse": "^5.5.4",
     "pdf-parse": "^2.4.5",
+    "pdfjs-dist": "^6.3.289",
     "tesseract.js": "^7.0.0",
     "xlsx": "^0.18.5"
   }

@@ -1,4 +1,5 @@
 import { store } from '../../store.js';
+import { escapeHtml } from '../../utils/security.js';
 
 export function initTopbar() {
   const topbarEl = document.getElementById('topbar');
@@ -8,12 +9,13 @@ export function initTopbar() {
   document.documentElement.setAttribute('data-theme', currentTheme);
 
   const getPageTitle = () => {
-    const hash = (window.location.hash || '#/dashboard').replace(/^#\//, '');
-    if (!hash || hash === 'dashboard') return 'Dashboard';
-    if (hash === 'ai') return 'AI Assistant';
-    if (hash === 'networth') return 'Net Worth';
-    if (hash === 'import') return 'Import Data';
-    return hash.charAt(0).toUpperCase() + hash.slice(1);
+    const rawHash = (window.location.hash || '#/dashboard').replace(/^#\//, '');
+    const cleanHash = rawHash.replace(/[^a-zA-Z0-9_-]/g, '');
+    if (!cleanHash || cleanHash === 'dashboard') return 'Dashboard';
+    if (cleanHash === 'ai') return 'AI Assistant';
+    if (cleanHash === 'networth') return 'Net Worth';
+    if (cleanHash === 'import') return 'Import Data';
+    return cleanHash.charAt(0).toUpperCase() + cleanHash.slice(1);
   };
 
   topbarEl.innerHTML = `
@@ -22,7 +24,7 @@ export function initTopbar() {
         <button class="btn-ghost mobile-menu-btn" id="mobile-menu-btn" style="display: none; padding: var(--space-2);">
           <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
-        <h1 id="topbar-page-title" style="font-size: 1.5rem; font-weight: 600; margin: 0;">${getPageTitle()}</h1>
+        <h1 id="topbar-page-title" style="font-size: 1.5rem; font-weight: 600; margin: 0;">${escapeHtml(getPageTitle())}</h1>
       </div>
       
       <div style="display: flex; align-items: center; gap: var(--space-4);">

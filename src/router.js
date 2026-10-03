@@ -6,6 +6,7 @@
 
 import { getAll } from './db.js';
 import { store } from './store.js';
+import { escapeHtml } from './utils/security.js';
 
 // ─── Route Definitions ───────────────────────────────────────────────────────
 
@@ -120,10 +121,11 @@ async function handleRouteChange() {
       await module.render(appContent);
     } else {
       // Module exists but has no render — show placeholder
+      const safeName = escapeHtml(hash.replace('#/', ''));
       appContent.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:center;height:100%;opacity:0.5;">
           <p style="font-size:1.125rem;color:var(--text-secondary);">
-            Module <strong>${hash.replace('#/', '')}</strong> is coming soon.
+            Module <strong>${safeName}</strong> is coming soon.
           </p>
         </div>
       `;
@@ -132,11 +134,11 @@ async function handleRouteChange() {
     console.error(`[Router] Failed to load module for ${hash}:`, err);
 
     // Show error or placeholder for missing modules
-    const moduleName = hash.replace('#/', '');
+    const safeModuleName = escapeHtml(hash.replace('#/', ''));
     appContent.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:center;height:100%;opacity:0.5;">
         <p style="font-size:1.125rem;color:var(--text-secondary);">
-          Module <strong>${moduleName}</strong> is coming soon or failed to load.
+          Module <strong>${safeModuleName}</strong> is coming soon or failed to load.
         </p>
       </div>
     `;

@@ -8,6 +8,7 @@ import { add as dbAdd, getAll } from '../../db.js';
 import { store } from '../../store.js';
 import { navigate } from '../../router.js';
 import { ALL_CATEGORIES } from '../transactions/categories.js';
+import { escapeHtml } from '../../utils/security.js';
 
 // ─── State ──────────────────────────────────────────────────────────────────
 
@@ -240,7 +241,7 @@ async function handleFile(file) {
 
     if (dsBank) {
       const bankName = result.bankProfile?.name || 'Unknown Bank';
-      dsBank.innerHTML = `<span class="detect-check done">✓</span> Bank: ${bankName}`;
+      dsBank.innerHTML = `<span class="detect-check done">✓</span> Bank: ${escapeHtml(bankName)}`;
       dsBank.classList.add('done');
     }
     if (dsParse) {
@@ -302,8 +303,8 @@ function renderPreview() {
             ${profile ? profile.name.charAt(0) : '?'}
           </div>
           <div class="bank-detected-details">
-            <h3>${profile ? profile.name : 'Unknown Bank'}</h3>
-            <p>${profile ? `${profile.country} • ${profile.currency}` : 'Auto-detection uncertain'}</p>
+            <h3>${profile ? escapeHtml(profile.name) : 'Unknown Bank'}</h3>
+            <p>${profile ? `${escapeHtml(profile.country)} • ${escapeHtml(profile.currency)}` : 'Auto-detection uncertain'}</p>
           </div>
           ${profile ? `<span class="badge badge-success">Auto-detected</span>` : `<span class="badge badge-warning">Manual selection needed</span>`}
         </div>
@@ -760,7 +761,7 @@ async function commitImport() {
         id: crypto.randomUUID(),
         date: tx.date,
         description: tx.description,
-        amount: tx.debit ? -tx.debit : (tx.credit || 0),
+        amount: tx.debit ? tx.debit : (tx.credit || 0),
         type: tx.debit ? 'expense' : 'income',
         category: tx.category || 'Uncategorized',
         accountId: defaultAccountId,
@@ -884,12 +885,6 @@ function renderError(message) {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str || '';
-  return div.innerHTML;
 }
 
 function formatAmount(num) {

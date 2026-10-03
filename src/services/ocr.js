@@ -12,12 +12,8 @@ export async function extractTransactionFromImage(image) {
     store.notify({ type: 'info', message: 'Scanning receipt...', duration: 2000 });
     
     // Run Tesseract
-    const result = await Tesseract.recognize(image, 'eng', {
-      logger: m => console.log('[OCR]', m)
-    });
-    
-    const text = result.data.text;
-    console.log('[OCR] Extracted text:\n', text);
+    const result = await Tesseract.recognize(image, 'eng');
+    const text = result?.data?.text || '';
 
     // 1. Extract Amount (Find largest currency-like number)
     // Matches numbers with optional decimals, e.g., 500, 1,200.50, 45.00
