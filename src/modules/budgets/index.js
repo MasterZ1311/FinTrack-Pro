@@ -91,6 +91,7 @@ export function getBudgetStatus(budgetId, periodStart, periodEnd) {
   // Sum expenses matching category in period
   const spent = transactions
     .filter((tx) => {
+      if (tx.isSplit) return false;
       if (tx.type !== 'expense') return false;
       if (tx.category !== budget.category) return false;
       if (budget.subcategory && tx.subcategory !== budget.subcategory) return false;
@@ -244,7 +245,7 @@ export function getEnvelopeSummary() {
   const transactions = store.state.transactions;
 
   const totalIncome = transactions
-    .filter((tx) => tx.type === 'income' && tx.date >= periodStart && tx.date <= periodEnd)
+    .filter((tx) => !tx.isSplit && tx.type === 'income' && tx.date >= periodStart && tx.date <= periodEnd)
     .reduce((s, tx) => s + (tx.convertedAmount ?? tx.amount), 0);
 
   const budgets = store.state.budgets.filter((b) => b.period === 'monthly');

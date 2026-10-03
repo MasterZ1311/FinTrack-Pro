@@ -63,6 +63,7 @@ export function createPrivacySafeSummary(financialData = {}) {
 
   for (const tx of transactions) {
     if (!tx || typeof tx !== 'object') continue;
+    if (tx.isSplit) continue;
     const isCurrentMonth = tx.date && tx.date.startsWith(currentMonthPrefix);
 
     if (isCurrentMonth) {

@@ -87,4 +87,63 @@ describe('Split Transactions Engine (src/modules/transactions/)', () => {
       /not found/
     );
   });
+
+  it('does not double count split parent in account balance and cascade deletes children', async () => {
+    const { recalculateBalance } = await import('../../src/modules/accounts/index.js');
+    const { deleteTransaction } = await import('../../src/modules/transactions/index.js');
+
+    const accountId = 'acc-split-test-101';
+    await add('accounts', {
+      id: accountId,
+      name: 'Checking Test',
+      initialBalance: 1000,
+      currentBalance: 1000,
+      currency: 'USD',
+    });
+
+    const parentId = 'tx-split-parent-1';
+    const parent = {
+      id: parentId,
+      date: '2026-09-10',
+      description: 'Big Retail Store',
+      amount: 100.00,
+      currency: 'USD',
+      type: 'expense',
+      accountId,
+      category: 'Shopping',
+      isSplit: false,
+    };
+
+    await add('transactions', parent);
+    store.setState('transactions', [parent]);
+    await recalculateBalance(accountId);
+
+    let acc = await getById('accounts', accountId);
+    expect(acc.currentBalance).toBe(900); // 1000 - 100
+
+    // Split into 60 + 40
+    const children = await splitTransaction(parentId, [
+      { category: 'Groceries', amount: 60, notes: 'Food' },
+      { category: 'Electronics', amount: 40, notes: 'Gadget' },
+    ]);
+    expect(children).toHaveLength(2);
+
+    // Verify account balance is 900, NOT 800 (which would be double counted!)
+    await recalculateBalance(accountId);
+    acc = await getById('accounts', accountId);
+    expect(acc.currentBalance).toBe(900);
+
+    // Delete parent transaction and verify children are cascade deleted
+    await deleteTransaction(parentId);
+    acc = await getById('accounts', accountId);
+    expect(acc.currentBalance).toBe(1000); // restored
+
+    const remainingParent = await getById('transactions', parentId);
+    expect(remainingParent).toBeUndefined();
+
+    for (const child of children) {
+      const remainingChild = await getById('transactions', child.id);
+      expect(remainingChild).toBeUndefined();
+    }
+  });
 });

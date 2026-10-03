@@ -13,8 +13,12 @@ import { getAll } from '../db.js';
  * @param {number} amount - absolute amount value
  * @returns {Promise<string>} First 16 chars of the SHA-256 hex digest
  */
-export async function generateHash(date, description, amount) {
-  const input = `${date}|${description.trim().toLowerCase()}|${Math.abs(amount).toFixed(2)}`;
+export async function generateHash(date, description, amount, type = null) {
+  let typeStr = '';
+  if (type) {
+    typeStr = `|${String(type).trim().toLowerCase()}`;
+  }
+  const input = `${date}|${description.trim().toLowerCase()}|${Math.abs(amount).toFixed(2)}${typeStr}`;
   const encoder = new TextEncoder();
   const data = encoder.encode(input);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);

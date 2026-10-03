@@ -118,6 +118,9 @@ export async function render(container) {
             return;
         }
         
+        // Filter out split parent records to avoid double-counting
+        transactions = transactions.filter(t => !t.isSplit);
+
         // Filter by account
         if (accountId !== 'all') {
             transactions = transactions.filter(t => t.accountId === accountId);
@@ -163,33 +166,41 @@ export async function render(container) {
     }
 
     function exportExcel(transactions, summary, period, type) {
-        // Sheet 1: Summary
-        const summaryData = Object.keys(summary).map(cat => ({
-            Category: cat,
-            Income: summary[cat].income,
-            Expense: summary[cat].expense,
-            Net: summary[cat].income - summary[cat].expense
-        }));
-        const summarySheet = xlsx.utils.json_to_sheet(summaryData);
+        try {
+            // Guard spreadsheet row bounds (max 10,000 rows to prevent memory exhaustion)
+            const boundedTransactions = transactions.slice(0, 10000);
 
-        // Sheet 2: Transactions
-        const txData = transactions.map(t => ({
-            Date: t.date,
-            Description: t.description || '',
-            Category: t.category || '',
-            Type: t.type || '',
-            Amount: parseFloat(t.amount) || 0,
-            Account: t.accountId || ''
-        }));
-        const txSheet = xlsx.utils.json_to_sheet(txData);
+            // Sheet 1: Summary
+            const summaryData = Object.keys(summary).map(cat => ({
+                Category: cat,
+                Income: summary[cat].income,
+                Expense: summary[cat].expense,
+                Net: summary[cat].income - summary[cat].expense
+            }));
+            const summarySheet = xlsx.utils.json_to_sheet(summaryData);
 
-        const wb = xlsx.utils.book_new();
-        xlsx.utils.book_append_sheet(wb, summarySheet, 'Summary');
-        xlsx.utils.book_append_sheet(wb, txSheet, 'Transactions');
+            // Sheet 2: Transactions
+            const txData = boundedTransactions.map(t => ({
+                Date: t.date,
+                Description: t.description || '',
+                Category: t.category || '',
+                Type: t.type || '',
+                Amount: parseFloat(t.amount) || 0,
+                Account: t.accountId || ''
+            }));
+            const txSheet = xlsx.utils.json_to_sheet(txData);
 
-        const title = type === 'monthly' ? period : period.split('-')[0];
-        const filename = `Expense_Report_${title}.xlsx`;
-        xlsx.writeFile(wb, filename);
+            const wb = xlsx.utils.book_new();
+            xlsx.utils.book_append_sheet(wb, summarySheet, 'Summary');
+            xlsx.utils.book_append_sheet(wb, txSheet, 'Transactions');
+
+            const title = type === 'monthly' ? period : period.split('-')[0];
+            const filename = `Expense_Report_${title}.xlsx`;
+            xlsx.writeFile(wb, filename);
+        } catch (err) {
+            console.error('Failed to export Excel report:', err);
+            alert('Failed to generate Excel report.');
+        }
     }
 
     async function exportPDF(transactions, summary, period, type, accountId) {

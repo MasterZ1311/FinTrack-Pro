@@ -121,5 +121,76 @@ describe('Account Balances & Transfer Balancing (src/modules/accounts/)', () => 
       const totalAfter = updatedFrom.currentBalance + updatedTo.currentBalance;
       expect(totalAfter).toBe(totalBefore);
     });
+
+    it('symmetrically supports single-record type: transfer with native cross-currency balances', async () => {
+      const fromAccId = 'acc-eur-wallet';
+      const toAccId = 'acc-usd-checking';
+
+      await add('accounts', {
+        id: fromAccId,
+        name: 'EUR Wallet',
+        initialBalance: 1000,
+        currency: 'EUR',
+      });
+      await add('accounts', {
+        id: toAccId,
+        name: 'USD Checking',
+        initialBalance: 500,
+        currency: 'USD',
+      });
+
+      // Transfer 100 EUR -> 108 USD
+      await add('transactions', {
+        id: 'tx-xfer-cross-1',
+        type: 'transfer',
+        accountId: fromAccId,
+        toAccountId: toAccId,
+        amount: 100, // EUR deducted
+        targetAmount: 108, // USD credited
+        currency: 'EUR',
+        targetCurrency: 'USD',
+        date: '2026-09-15',
+      });
+
+      await recalculateBalance(fromAccId);
+      await recalculateBalance(toAccId);
+
+      const eurAcc = await getById('accounts', fromAccId);
+      const usdAcc = await getById('accounts', toAccId);
+
+      // EUR wallet: 1000 - 100 = 900
+      expect(eurAcc.currentBalance).toBe(900);
+      expect(eurAcc.balance).toBe(900);
+
+      // USD checking: 500 + 108 = 608
+      expect(usdAcc.currentBalance).toBe(608);
+      expect(usdAcc.balance).toBe(608);
+    });
+
+    it('gracefully handles legacy openingBalance and balance fields', async () => {
+      const legacyAccId = 'acc-legacy-01';
+      await add('accounts', {
+        id: legacyAccId,
+        name: 'Legacy Account',
+        openingBalance: 2500,
+        balance: 2500,
+        currency: 'USD',
+      });
+
+      await add('transactions', {
+        id: 'tx-leg-inc-1',
+        type: 'income',
+        accountId: legacyAccId,
+        amount: 500,
+        date: '2026-09-12',
+      });
+
+      await recalculateBalance(legacyAccId);
+
+      const acc = await getById('accounts', legacyAccId);
+      expect(acc.currentBalance).toBe(3000);
+      expect(acc.balance).toBe(3000);
+      expect(acc.initialBalance).toBe(2500);
+    });
   });
 });

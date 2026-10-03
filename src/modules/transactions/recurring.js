@@ -3,7 +3,7 @@
  * Generates future dates, checks for missed instances, and surfaces upcoming events.
  */
 
-import { getAll, add as dbAdd, update as dbUpdate } from '../../db.js';
+import { getAll, getById, add as dbAdd, update as dbUpdate } from '../../db.js';
 import { store } from '../../store.js';
 import { createTransactionDefaults } from './schema.js';
 
@@ -250,8 +250,7 @@ export async function getUpcomingRecurring(days = 30) {
  */
 export async function cancelRecurringSeries(parentId) {
   try {
-    const allTx = await getAll('transactions');
-    const parent = allTx.find((tx) => tx.id === parentId);
+    const parent = await getById('transactions', parentId);
     if (!parent) return;
 
     const updated = {

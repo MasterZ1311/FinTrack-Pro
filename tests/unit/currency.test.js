@@ -113,10 +113,11 @@ describe('Currency Service & Calculations (src/services/currency.js)', () => {
       expect(convert(120.75, 'USD', 'USD')).toBe(120.75);
     });
 
-    it('returns original amount as safe fallback if exchange rates are not cached', () => {
+    it('throws explicit error if exchange rates are not cached or missing', () => {
       // Without calling fetchExchangeRates, ratesCache is null
-      const converted = convert(100, 'USD', 'INR');
-      expect(converted).toBe(100);
+      expect(() => convert(100, 'USD', 'INR')).toThrow(
+        'Exchange rate unavailable from USD to INR'
+      );
     });
   });
 

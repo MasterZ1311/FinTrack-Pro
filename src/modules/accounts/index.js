@@ -1,6 +1,6 @@
-import { getAll, getById, add, update, remove, getByIndex } from '../../db.js';
+import { getAll, getById, add, update, getByIndex } from '../../db.js';
 import store from '../../store.js';
-import { formatCurrency, formatCompact } from '../../services/currency.js';
+import { formatCurrency, convert } from '../../services/currency.js';
 
 const ACCOUNT_TYPES = {
   savings: { label: 'Savings Account', icon: '🏦' },
@@ -28,21 +28,59 @@ export async function recalculateBalance(accountId) {
     const account = await getById('accounts', accountId);
     if (!account) return;
 
-    const transactions = await getByIndex('transactions', 'accountId', accountId);
-    
-    let balance = account.initialBalance || 0;
-    for (const tx of transactions) {
+    let sourceTxs = [];
+    let targetTxs = [];
+    try {
+      sourceTxs = await getByIndex('transactions', 'accountId', accountId);
+    } catch {
+      sourceTxs = [];
+    }
+    try {
+      targetTxs = await getByIndex('transactions', 'toAccountId', accountId);
+    } catch {
+      targetTxs = [];
+    }
+
+    if (sourceTxs.length === 0 && targetTxs.length === 0) {
+      const allTx = await getAll('transactions');
+      sourceTxs = allTx.filter((t) => t.accountId === accountId);
+      targetTxs = allTx.filter((t) => t.toAccountId === accountId);
+    }
+
+    const txMap = new Map();
+    for (const tx of sourceTxs) txMap.set(tx.id, tx);
+    for (const tx of targetTxs) txMap.set(tx.id, tx);
+
+    const initialBalance = Number(account.initialBalance ?? account.openingBalance ?? 0);
+    let balance = initialBalance;
+
+    for (const tx of txMap.values()) {
+      if (tx.isSplit === true) continue;
+
       if (tx.type === 'income') {
-        balance += tx.amount;
+        balance += Number(tx.amount || 0);
       } else if (tx.type === 'expense') {
-        balance -= tx.amount;
+        balance -= Number(tx.amount || 0);
+      } else if (tx.type === 'transfer') {
+        if (tx.accountId === accountId) {
+          balance -= Number(tx.amount || 0);
+        }
+        if (tx.toAccountId === accountId) {
+          const credited = (tx.targetAmount !== undefined && tx.targetAmount !== null)
+            ? Number(tx.targetAmount)
+            : Number(tx.amount || 0);
+          balance += credited;
+        }
       }
     }
-    
+
+    account.initialBalance = initialBalance;
+    account.openingBalance = initialBalance;
     account.currentBalance = balance;
+    account.balance = balance;
     account.updatedAt = Date.now();
     await update('accounts', account);
-    
+
     // Refresh global store if needed
     const allAccounts = await getAll('accounts');
     store.setState('accounts', allAccounts);
@@ -52,14 +90,28 @@ export async function recalculateBalance(accountId) {
 }
 
 export async function createTransfer(fromAccountId, toAccountId, amount, date, notes) {
+  const fromAccount = await getById('accounts', fromAccountId);
+  const toAccount = await getById('accounts', toAccountId);
+
+  const fromCurrency = fromAccount?.currency || 'USD';
+  const toCurrency = toAccount?.currency || fromCurrency;
+
+  let targetAmount = amount;
+  if (fromCurrency !== toCurrency) {
+    targetAmount = convert(amount, fromCurrency, toCurrency);
+  }
+
   const transferId = crypto.randomUUID();
   const now = Date.now();
-  
+
   const fromTx = {
     id: crypto.randomUUID(),
     accountId: fromAccountId,
     type: 'expense',
     amount: amount,
+    currency: fromCurrency,
+    targetAmount: targetAmount,
+    targetCurrency: toCurrency,
     date: date,
     category: 'Transfer',
     notes: notes,
@@ -67,12 +119,13 @@ export async function createTransfer(fromAccountId, toAccountId, amount, date, n
     createdAt: now,
     updatedAt: now
   };
-  
+
   const toTx = {
     id: crypto.randomUUID(),
     accountId: toAccountId,
     type: 'income',
-    amount: amount,
+    amount: targetAmount,
+    currency: toCurrency,
     date: date,
     category: 'Transfer',
     notes: notes,
@@ -80,10 +133,10 @@ export async function createTransfer(fromAccountId, toAccountId, amount, date, n
     createdAt: now,
     updatedAt: now
   };
-  
+
   await add('transactions', fromTx);
   await add('transactions', toTx);
-  
+
   await recalculateBalance(fromAccountId);
   await recalculateBalance(toAccountId);
 }
@@ -347,7 +400,9 @@ function attachModalListeners() {
           profileId: profile?.id || 'default',
           ...accountData,
           initialBalance,
+          openingBalance: initialBalance,
           currentBalance: initialBalance,
+          balance: initialBalance,
           isDefault: state.accounts.length === 0,
           isActive: true,
           createdAt: Date.now()

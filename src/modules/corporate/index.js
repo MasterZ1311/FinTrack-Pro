@@ -386,8 +386,8 @@ const renderDashboard = () => {
   const transactions = store.getState('transactions') || [];
   
   // Calculate P&L for current quarter (simplified: using all transactions for demo)
-  const incomeTxs = transactions.filter(t => t.type === 'income');
-  const expenseTxs = transactions.filter(t => t.type === 'expense');
+  const incomeTxs = transactions.filter(t => !t.isSplit && t.type === 'income');
+  const expenseTxs = transactions.filter(t => !t.isSplit && t.type === 'expense');
   
   const totalRev = incomeTxs.reduce((sum, t) => sum + t.amount, 0);
   const totalExp = expenseTxs.reduce((sum, t) => sum + t.amount, 0);

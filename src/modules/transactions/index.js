@@ -3,7 +3,7 @@
  * Full-featured transaction list, add/edit modal, and CRUD engine.
  */
 
-import { getAll, add as dbAdd, update as dbUpdate, remove as dbRemove } from '../../db.js';
+import { getAll, getById, getByIndex, add as dbAdd, update as dbUpdate, remove as dbRemove } from '../../db.js';
 import { store } from '../../store.js';
 import { validateTransaction, createTransactionDefaults } from './schema.js';
 import {
@@ -11,6 +11,9 @@ import {
   getCategoryById, getCategoriesByType, CATEGORY_MAP,
 } from './categories.js';
 import { generateRecurringInstances } from './recurring.js';
+import { convert } from '../../services/currency.js';
+import { recalculateBalance } from '../accounts/index.js';
+import { escapeHtml, safeAttr } from '../../utils/security.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -43,7 +46,24 @@ const VIRTUAL_ROW_HEIGHT = 64; // px, for virtual scroll estimation
 export async function addTransaction(txData) {
   const tx = createTransactionDefaults(txData);
 
-  // Convert currency if needed
+  // Cross-currency transfer handling: determine source and target amounts in native currencies
+  if (tx.type === 'transfer' && tx.toAccountId) {
+    const fromAccount = await getById('accounts', tx.accountId);
+    const toAccount = await getById('accounts', tx.toAccountId);
+    const fromCurrency = tx.currency || fromAccount?.currency || tx.baseCurrency;
+    const toCurrency = tx.targetCurrency || toAccount?.currency || fromCurrency;
+    tx.currency = fromCurrency;
+    tx.targetCurrency = toCurrency;
+    if (tx.targetAmount === undefined || tx.targetAmount === null) {
+      if (fromCurrency === toCurrency) {
+        tx.targetAmount = tx.amount;
+      } else {
+        tx.targetAmount = await convertCurrency(tx.amount, fromCurrency, toCurrency);
+      }
+    }
+  }
+
+  // Convert currency if needed for base reporting
   if (tx.currency !== tx.baseCurrency) {
     tx.convertedAmount = await convertCurrency(tx.amount, tx.currency, tx.baseCurrency);
   } else {
@@ -88,6 +108,22 @@ export async function updateTransaction(id, changes) {
     updatedAt: new Date().toISOString(),
   };
 
+  if (updated.type === 'transfer' && updated.toAccountId) {
+    const fromAccount = await getById('accounts', updated.accountId);
+    const toAccount = await getById('accounts', updated.toAccountId);
+    const fromCurrency = updated.currency || fromAccount?.currency || updated.baseCurrency;
+    const toCurrency = updated.targetCurrency || toAccount?.currency || fromCurrency;
+    updated.currency = fromCurrency;
+    updated.targetCurrency = toCurrency;
+    if (updated.targetAmount === undefined || updated.targetAmount === null) {
+      if (fromCurrency === toCurrency) {
+        updated.targetAmount = updated.amount;
+      } else {
+        updated.targetAmount = await convertCurrency(updated.amount, fromCurrency, toCurrency);
+      }
+    }
+  }
+
   if (updated.currency !== updated.baseCurrency) {
     updated.convertedAmount = await convertCurrency(
       updated.amount, updated.currency, updated.baseCurrency
@@ -103,6 +139,9 @@ export async function updateTransaction(id, changes) {
   await _updateAccountBalance(updated.accountId);
   if (existing.accountId !== updated.accountId) await _updateAccountBalance(existing.accountId);
   if (updated.toAccountId) await _updateAccountBalance(updated.toAccountId);
+  if (existing.toAccountId && existing.toAccountId !== updated.toAccountId) {
+    await _updateAccountBalance(existing.toAccountId);
+  }
 
   const all = await getAll('transactions');
   store.setState('transactions', all);
@@ -122,9 +161,30 @@ export async function deleteTransaction(id) {
   const existing = store.state.transactions.find((t) => t.id === id);
   if (!existing) return;
 
+  // Cascade delete child sub-transactions linked via splitParentId
+  let childTxs = [];
+  try {
+    childTxs = await getByIndex('transactions', 'splitParentId', id);
+  } catch {
+    const all = await getAll('transactions');
+    childTxs = all.filter((t) => t.splitParentId === id);
+  }
+
+  const affectedAccountIds = new Set();
+  if (existing.accountId) affectedAccountIds.add(existing.accountId);
+  if (existing.toAccountId) affectedAccountIds.add(existing.toAccountId);
+
+  for (const child of childTxs) {
+    if (child.accountId) affectedAccountIds.add(child.accountId);
+    if (child.toAccountId) affectedAccountIds.add(child.toAccountId);
+    await dbRemove('transactions', child.id);
+  }
+
   await dbRemove('transactions', id);
-  await _updateAccountBalance(existing.accountId);
-  if (existing.toAccountId) await _updateAccountBalance(existing.toAccountId);
+
+  for (const accId of affectedAccountIds) {
+    await _updateAccountBalance(accId);
+  }
 
   const all = await getAll('transactions');
   store.setState('transactions', all);
@@ -210,6 +270,9 @@ export async function splitTransaction(id, splitParts) {
     created.push(child);
   }
 
+  // Update account balance immediately so that balance reflects split children and excludes parent
+  await _updateAccountBalance(original.accountId);
+
   const all = await getAll('transactions');
   store.setState('transactions', all);
   store.notify({ type: 'success', message: `Transaction split into ${splitParts.length} parts`, duration: 3000 });
@@ -219,8 +282,8 @@ export async function splitTransaction(id, splitParts) {
 // ─── Currency Conversion ──────────────────────────────────────────────────────
 
 /**
- * Simple currency conversion helper.
- * Uses cached exchange rates from store, falls back to 1:1.
+ * Currency conversion helper.
+ * Uses currency service or cached exchange rates from store, throws explicit error if unavailable.
  * @param {number} amount
  * @param {string} from
  * @param {string} to
@@ -229,12 +292,14 @@ export async function splitTransaction(id, splitParts) {
 async function convertCurrency(amount, from, to) {
   if (from === to) return amount;
   try {
-    const rates = store.state.settings?.exchangeRates || {};
-    if (rates[from] && rates[to]) {
+    return convert(amount, from, to);
+  } catch (_e) {
+    const rates = store.state.settings?.exchangeRates;
+    if (rates && rates[from] && rates[to]) {
       return (amount / rates[from]) * rates[to];
     }
-  } catch (e) { /* fallback below */ }
-  return amount; // 1:1 fallback
+    throw new Error(`Exchange rate unavailable from ${from} to ${to}`);
+  }
 }
 
 // ─── Account Balance Update ───────────────────────────────────────────────────
@@ -246,27 +311,7 @@ async function convertCurrency(amount, from, to) {
  */
 async function _updateAccountBalance(accountId) {
   try {
-    const accounts = await getAll('accounts');
-    const account = accounts.find((a) => a.id === accountId);
-    if (!account) return;
-
-    const allTx = await getAll('transactions');
-    let balance = account.openingBalance ?? 0;
-
-    for (const tx of allTx) {
-      if (tx.accountId === accountId) {
-        if (tx.type === 'income') balance += tx.convertedAmount ?? tx.amount;
-        else if (tx.type === 'expense') balance -= tx.convertedAmount ?? tx.amount;
-        else if (tx.type === 'transfer') balance -= tx.convertedAmount ?? tx.amount;
-      }
-      if (tx.toAccountId === accountId && tx.type === 'transfer') {
-        balance += tx.convertedAmount ?? tx.amount;
-      }
-    }
-
-    await dbUpdate('accounts', { ...account, balance, updatedAt: new Date().toISOString() });
-    const freshAccounts = await getAll('accounts');
-    store.setState('accounts', freshAccounts);
+    await recalculateBalance(accountId);
   } catch (err) {
     console.error('[Transactions] Balance update failed:', err);
   }
@@ -411,13 +456,13 @@ function renderTransactionRow(tx, bulkMode, isSelected, accounts) {
         <span>${cat?.icon ?? '💰'}</span>
       </div>
       <div class="tx-info">
-        <div class="tx-desc">${tx.description || tx.merchant || '—'}</div>
+        <div class="tx-desc">${escapeHtml(tx.description || tx.merchant || '—')}</div>
         <div class="tx-meta">
-          <span class="tx-cat-label">${cat?.label ?? tx.category}</span>
-          ${tx.tags?.length > 0 ? tx.tags.slice(0, 2).map(tag => `<span class="tx-tag">${tag}</span>`).join('') : ''}
+          <span class="tx-cat-label">${escapeHtml(cat?.label ?? tx.category)}</span>
+          ${tx.tags?.length > 0 ? tx.tags.slice(0, 2).map(tag => `<span class="tx-tag">${escapeHtml(tag)}</span>`).join('') : ''}
         </div>
       </div>
-      <div class="tx-account">${account?.name ?? '—'}</div>
+      <div class="tx-account">${escapeHtml(account?.name ?? '—')}</div>
       <div class="tx-amount" style="color:${amountColor}">
         ${amountPrefix}${formatCurrency(tx.amount, tx.currency)}
       </div>
@@ -581,8 +626,8 @@ function buildModal(tx = {}, accounts = [], isEdit = false) {
             <label class="form-label">Tags</label>
             <div class="tags-input-wrapper" id="tags-wrapper">
               ${tags.map((tag) => `
-                <span class="chip tag-chip" data-tag="${tag}">
-                  ${tag} <button type="button" class="tag-remove" data-tag="${tag}">✕</button>
+                <span class="chip tag-chip" data-tag="${safeAttr(tag)}">
+                  ${escapeHtml(tag)} <button type="button" class="tag-remove" data-tag="${safeAttr(tag)}">✕</button>
                 </span>
               `).join('')}
               <input type="text" class="tags-input" id="tags-input"
@@ -884,7 +929,7 @@ function renderTags(modalEl) {
     const span = document.createElement('span');
     span.className = 'chip tag-chip';
     span.dataset.tag = tag;
-    span.innerHTML = `${tag} <button type="button" class="tag-remove" data-tag="${tag}">✕</button>`;
+    span.innerHTML = `${escapeHtml(tag)} <button type="button" class="tag-remove" data-tag="${safeAttr(tag)}">✕</button>`;
     wrapper.insertBefore(span, input);
   });
 }

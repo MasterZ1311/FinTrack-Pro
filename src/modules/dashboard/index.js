@@ -36,6 +36,7 @@ function calculateKPIs(transactions, accounts) {
   let expensesThisMonth = 0;
   
   for (const tx of transactions) {
+    if (tx.isSplit) continue;
     if (tx.date && tx.date.startsWith(currentMonthStr)) {
       if (tx.type === 'income') incomeThisMonth += Number(tx.amount || 0);
       if (tx.type === 'expense') expensesThisMonth += Number(tx.amount || 0);
@@ -56,7 +57,7 @@ function calculateKPIs(transactions, accounts) {
 }
 
 function renderRecentTransactions(transactions) {
-  const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+  const recent = [...transactions].filter((tx) => !tx.isSplit).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
   
   if (recent.length === 0) {
     return `
@@ -108,6 +109,7 @@ function renderBudgetOverview(transactions, budgets) {
   
   const categoryExpenses = {};
   for (const tx of transactions) {
+    if (tx.isSplit) continue;
     if (tx.type === 'expense' && tx.date && tx.date.startsWith(currentMonthStr)) {
       categoryExpenses[tx.category] = (categoryExpenses[tx.category] || 0) + Number(tx.amount || 0);
     }

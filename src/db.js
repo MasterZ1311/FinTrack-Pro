@@ -7,7 +7,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'fintrack-pro';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 /** @type {import('idb').IDBPDatabase | null} */
 let dbInstance = null;
@@ -20,19 +20,31 @@ const REQUIRED_STORES = [
   'exchangeRates', 'settings', 'credentials'
 ];
 
-function upgradeSchema(db) {
+const REQUIRED_TX_INDEXES = [
+  'date', 'accountId', 'category', 'type',
+  'toAccountId', 'splitParentId', 'hash'
+];
+
+function upgradeSchema(db, _oldVersion, _newVersion, transaction) {
   // profiles — Individual & Corporate Individual profiles
   if (!db.objectStoreNames.contains('profiles')) {
     db.createObjectStore('profiles', { keyPath: 'id' });
   }
 
   // transactions — with indexes for querying
+  let txStore;
   if (!db.objectStoreNames.contains('transactions')) {
-    const txStore = db.createObjectStore('transactions', { keyPath: 'id' });
-    txStore.createIndex('date', 'date', { unique: false });
-    txStore.createIndex('accountId', 'accountId', { unique: false });
-    txStore.createIndex('category', 'category', { unique: false });
-    txStore.createIndex('type', 'type', { unique: false });
+    txStore = db.createObjectStore('transactions', { keyPath: 'id' });
+  } else if (transaction) {
+    txStore = transaction.objectStore('transactions');
+  }
+
+  if (txStore) {
+    for (const idx of REQUIRED_TX_INDEXES) {
+      if (!txStore.indexNames.contains(idx)) {
+        txStore.createIndex(idx, idx, { unique: false });
+      }
+    }
   }
 
   // accounts
@@ -92,11 +104,17 @@ async function getDB() {
     upgrade: upgradeSchema,
   });
 
-  // Self-healing schema verification: if any required store is missing (due to schema drift without version bump),
+  // Self-healing schema verification: if any required store or index is missing,
   // dynamically re-open with an incremented database version to trigger upgradeSchema.
   const hasAllStores = REQUIRED_STORES.every(storeName => dbInstance.objectStoreNames.contains(storeName));
-  if (!hasAllStores) {
-    console.warn('[DB] Schema discrepancy detected (missing object store). Re-opening DB with incremented version...');
+  let hasAllIndexes = true;
+  if (dbInstance.objectStoreNames.contains('transactions')) {
+    const tx = dbInstance.transaction('transactions', 'readonly');
+    hasAllIndexes = REQUIRED_TX_INDEXES.every(idx => tx.store.indexNames.contains(idx));
+  }
+
+  if (!hasAllStores || !hasAllIndexes) {
+    console.warn('[DB] Schema discrepancy detected (missing object store or index). Re-opening DB with incremented version...');
     const targetVersion = dbInstance.version + 1;
     dbInstance.close();
     dbInstance = await openDB(DB_NAME, targetVersion, {

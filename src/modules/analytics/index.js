@@ -38,7 +38,7 @@ function updateCharts(dateRangeType) {
   const startStr = start.toISOString().slice(0, 10);
   const endStr = end.toISOString().slice(0, 10);
   
-  const filteredTxs = transactions.filter(tx => tx.date >= startStr && tx.date <= endStr);
+  const filteredTxs = transactions.filter(tx => !tx.isSplit && tx.date >= startStr && tx.date <= endStr);
   
   // 1. Income vs Expense Trend (6 months fixed, ending today)
   updateTrendChart(transactions);
@@ -63,12 +63,12 @@ function updateTrendChart(transactions) {
   }
   
   const incomeData = months.map(m => {
-    return transactions.filter(tx => tx.type === 'income' && tx.date.startsWith(m))
+    return transactions.filter(tx => !tx.isSplit && tx.type === 'income' && tx.date.startsWith(m))
       .reduce((sum, tx) => sum + tx.amount, 0);
   });
   
   const expenseData = months.map(m => {
-    return transactions.filter(tx => tx.type === 'expense' && tx.date.startsWith(m))
+    return transactions.filter(tx => !tx.isSplit && tx.type === 'expense' && tx.date.startsWith(m))
       .reduce((sum, tx) => sum + tx.amount, 0);
   });
   

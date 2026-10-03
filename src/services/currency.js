@@ -193,15 +193,16 @@ export async function fetchExchangeRates(baseCurrency) {
 export function convert(amount, fromCurrency, toCurrency) {
   if (fromCurrency === toCurrency) return amount;
   
-  if (!ratesCache) {
-    console.warn('[Currency Service] Rates not loaded yet, returning original amount');
-    return amount;
+  if (!ratesCache || !ratesCache.rates) {
+    throw new Error(`Exchange rate unavailable from ${fromCurrency} to ${toCurrency}`);
   }
 
   let amountInBase = amount;
   if (fromCurrency !== ratesCache.base) {
     const fromRate = ratesCache.rates[fromCurrency];
-    if (!fromRate) return amount; // Cannot convert
+    if (!fromRate) {
+      throw new Error(`Exchange rate unavailable from ${fromCurrency} to ${toCurrency}`);
+    }
     amountInBase = amount / fromRate;
   }
 
@@ -210,13 +211,17 @@ export function convert(amount, fromCurrency, toCurrency) {
   }
 
   const toRate = ratesCache.rates[toCurrency];
-  if (!toRate) return amount; // Cannot convert
+  if (!toRate) {
+    throw new Error(`Exchange rate unavailable from ${fromCurrency} to ${toCurrency}`);
+  }
 
   return amountInBase * toRate;
 }
 
 export function convertToBase(amount, fromCurrency) {
-  if (!ratesCache) return amount;
+  if (!ratesCache) {
+    throw new Error(`Exchange rate unavailable from ${fromCurrency} to base currency`);
+  }
   return convert(amount, fromCurrency, ratesCache.base);
 }
 
