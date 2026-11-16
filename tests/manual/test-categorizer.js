@@ -1,4 +1,4 @@
-import { ruleBasedCategorize } from './src/services/categorizer.js';
+import { ruleBasedCategorize } from '../../src/services/categorizer.js';
 
 const samples = [
   "UPI/CR/123456789/Swiggy Technologies/HDFC",

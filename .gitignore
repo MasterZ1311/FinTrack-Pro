@@ -33,3 +33,6 @@ playwright-report/
 
 # Multi-agent metadata
 .agents/
+
+# Video generation workdir
+brag-output/work/

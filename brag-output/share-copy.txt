@@ -1,0 +1,5 @@
+Your financial data shouldn't live on someone else's server.
+
+Meet FinTrack Pro: a privacy-first, on-device personal finance tracker with AI categorization, bank statement parsing, and zero cloud dependencies. It installs as a native app on Windows, macOS, Linux, iOS, and Android with full offline support.
+
+Explore the source and install it today: https://github.com/sivak/expense-tracker

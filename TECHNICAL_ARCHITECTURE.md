@@ -56,23 +56,43 @@
 Expense Tracker/
 │
 ├── index.html                    # App shell HTML; global CSS design tokens
-├── manifest.json                 # PWA Web App Manifest
-├── sw.js                         # Service Worker (Workbox-based)
+├── manifest.json                 # PWA Web App Manifest (source)
+├── sw.js                         # Service Worker (Workbox-based caching)
 ├── vite.config.js                # Vite build configuration
 ├── package.json                  # npm scripts + dependency declarations
 ├── package-lock.json
-├── replace.cjs                   # Build post-processing script (CJS)
-├── test-categorizer.js           # Manual test script for categorizer
 │
-├── dist/                         # Production build output (gitignored typically)
+├── dist/                         # Production build output
 ├── public/                       # Static assets copied verbatim to dist/
+│   ├── manifest.json             # Root-served PWA manifest
+│   ├── favicon.svg
+│   └── icons.svg
+│
+├── docs/                         # Architecture, installation & compliance guides
+│   ├── INSTALLATION.md           # Native system installation across all operating systems
+│   ├── CHANGELOG.md              # Version releases and upgrade notes
+│   ├── SECURITY.md               # Threat model, encryption & zero-knowledge guarantees
+│   └── CODEBASE_AUDIT.md         # Comprehensive architectural audit report
+│
+├── brag-output/                  # Launch video artifacts (brag / brag-slim)
+│   ├── brag.mp4                  # 1080p 30fps launch showcase video with synced stereo audio
+│   ├── brag.jpg                  # Settled poster thumbnail
+│   ├── brag-plan.md              # Scene-by-scene storyboard and creative brief
+│   └── share-copy.txt            # Ready-to-post launch copy
+│
+├── tests/                        # Comprehensive test suites (100% pass)
+│   ├── unit/                     # Fast unit suites (197 Vitest tests)
+│   ├── integration/              # Multi-tier integration suites
+│   ├── e2e/                      # Playwright E2E & Axe accessibility audits
+│   └── manual/                   # Manual verification scripts (test-categorizer.js)
 │
 └── src/
-    ├── main.js                   # Bootstrap: DB → Store → Router → SW
+    ├── main.js                   # Bootstrap: DB → Store → Router → SW → PWA Installer
     ├── router.js                 # Hash-based SPA router
     ├── store.js                  # Global reactive state (pub/sub)
     ├── db.js                     # IndexedDB abstraction (CRUD + migration)
     ├── crypto.js                 # AES-256-GCM encrypt/decrypt via Web Crypto
+    ├── network-guard.js          # Zero-knowledge outbound network proxy
     │
     ├── modules/                  # Feature modules (page-level, lazy-loaded)
     │   ├── dashboard/

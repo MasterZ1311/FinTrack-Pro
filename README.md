@@ -2,233 +2,237 @@
 
 # FinTrack Pro
 
-### A Privacy-First, AI-Powered Personal Finance Tracker
+### Total Financial Sovereignty — A Privacy-First, AI-Powered Personal Finance System
 
-[![Built With](https://img.shields.io/badge/Built%20With-Vanilla%20JS%20%2B%20Vite-6366f1?style=flat-square)](https://vitejs.dev)
-[![PWA Ready](https://img.shields.io/badge/PWA-Ready-22c55e?style=flat-square)](https://web.dev/progressive-web-apps/)
-[![Offline First](https://img.shields.io/badge/Offline-First-f59e0b?style=flat-square)](#)
-[![No Server Required](https://img.shields.io/badge/Backend-None%20(100%25%20Client--Side)-3b82f6?style=flat-square)](#)
+[![Version](https://img.shields.io/badge/Release-v1.1.0--Production-6366f1?style=for-the-badge&logo=rocket)](PROJECT.md)
+[![Automated Tests](https://img.shields.io/badge/Tests-197%2F197%20Passed-10b981?style=for-the-badge&logo=vitest)](package.json)
+[![E2E & Accessibility](https://img.shields.io/badge/WCAG%202.1%20AA-0%20Violations-06b6d4?style=for-the-badge&logo=accessibility)](tests/e2e/a11y.spec.js)
+[![Architecture](https://img.shields.io/badge/Cloud%20Dependency-Zero%20(100%25%20On--Device)-3b82f6?style=for-the-badge&logo=buffer)](#)
+[![PWA Standalone](https://img.shields.io/badge/PWA-Installable%20Native%20System-f59e0b?style=for-the-badge&logo=pwa)](docs/INSTALLATION.md)
+[![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge)](#license)
+
+<br/>
+
+<p align="center">
+  <b>FinTrack Pro</b> is a complete, installable personal finance operating system that runs <b>100% locally in your browser and on your desktop</b>. Zero accounts. Zero telemetry. Zero third-party cloud databases.
+</p>
+
+---
+
+### 🎥 Watch the Launch Showcase (20s)
+
+[![FinTrack Pro Launch Video](brag-output/brag.jpg)](brag-output/brag.mp4)
+
+> 📹 **[Click here to watch or download `brag-output/brag.mp4`](brag-output/brag.mp4)**  
+> *Showcasing real-time Chart.js rendering, multi-tier statement OCR, Emil Kowalski tactile touch interactions, military-grade AES-256 client vault, and 1-click native system installation.*
 
 </div>
 
 ---
 
-## What Is FinTrack Pro?
+## ⚡ Core Philosophy & Why FinTrack Pro?
 
-**FinTrack Pro** is a fully client-side personal finance management application. It runs entirely in your browser — no accounts, no cloud storage, no data ever leaves your device. Every byte of your financial data is stored locally in your browser's IndexedDB.
+Most personal finance apps ask you to surrender your most sensitive data: bank account logins, transaction histories, monthly incomes, and net worth balances stored on centralized remote servers.
 
-It's designed for people who want a **powerful, professional-grade expense tracker** with zero privacy compromises.
-
----
-
-## Key Features
-
-### Dashboard & Analytics
-- **Real-time financial overview** — income vs. expenses, net balance, and savings rate at a glance
-- **Interactive charts** (powered by Chart.js) — spending trends, category breakdowns, cash flow
-- **Smart KPIs** — monthly comparisons, streak tracking, top spending categories
-
-### Transaction Management
-- Add, edit, and delete transactions with full metadata (amount, category, account, notes, tags)
-- **Recurring transactions** — set daily/weekly/monthly/yearly repeating entries that auto-generate
-- **Advanced filtering** — by date range, category, account, type, and free-text search
-- **Split transactions** — divide one payment across multiple categories
-- **Bulk import** from bank statements (CSV, PDF, OFX/QFX)
-
-### Bank Statement Import
-- Supports **CSV, PDF, and OFX/QFX** file formats
-- **Auto-detects your bank** from Indian and international bank profiles:
-  - **Indian Banks**: SBI, HDFC, ICICI, Axis, Kotak, PNB, BOB, Canara, Federal, IDFC
-  - **International Banks**: Chase, Wells Fargo, Barclays, ANZ, and more
-- Smart **deduplication** — never import the same transaction twice
-- **UPI transaction parsing** — extracts merchant names from Indian UPI/NEFT/IMPS descriptions
-
-### AI-Powered Features
-- **Automatic transaction categorization** with a 3-tier system:
-  1. **Learned patterns** — remembers your manual corrections
-  2. **Rule-based** — instant matching for 40+ known merchants (Swiggy, Uber, Amazon, etc.)
-  3. **AI fallback** — uses WebLLM (on-device Gemma 2B) or your own API key (OpenAI/Anthropic-compatible)
-- **AI Financial Assistant** — chat with your financial data, ask questions like "How much did I spend on food last month?"
-- **Receipt scanning** via OCR (Tesseract.js) — photograph a receipt to extract amount & date automatically
-
-### Budget Management
-- Set **monthly/yearly/custom budgets** per category
-- Real-time **budget progress bars** with color-coded alerts
-- **Budget rollover** and carryover support
-- Notifications when approaching or exceeding limits
-
-### Multiple Accounts
-- Track **checking, savings, credit cards, cash, wallets, and investment accounts**
-- Per-account balance tracking with full transaction history
-- **Multi-currency support** — 100+ world currencies with live exchange rates (cached 24h offline)
-- Indian number formatting (Lakhs/Crores) for INR accounts
-
-### Investments & Net Worth
-- Track stocks, mutual funds, crypto, real estate, and other assets
-- **Net worth timeline** — see your wealth grow over time
-- P&L calculation per investment
-
-### Reports & Export
-- **PDF reports** with charts and summaries (via jsPDF + html2canvas)
-- **Excel/CSV export** (via SheetJS/xlsx)
-- Date-range reports, category reports, and account statements
-
-### Corporate Mode
-- Separate **corporate expense tracking** profile
-- Categories suited for business (Client Entertainment, Travel & Accommodation, Office Supplies, etc.)
-- Report generation for reimbursement submissions
-
-### Financial Goals & Debt Tracker
-- Set savings goals with target amounts and deadlines
-- **Debt management** — track loans, EMIs, and payoff progress
-
-### Settings & Customization
-- **Dark mode** (default) with custom color themes
-- Custom expense categories with icons and colors
-- Currency and locale preferences
-- Data export/import (full backup & restore as JSON)
-- AES-256 encrypted backup export
-
-### Progressive Web App & Native System Installation
-- **Install on any device** — install as a standalone native app on Windows, macOS, Linux, iOS, and Android
-- **Full offline support** — all features work with zero internet connectivity
-- **See [docs/INSTALLATION.md](docs/INSTALLATION.md)** for detailed installation steps per operating system.
+**FinTrack Pro completely reverses this model:**
+1. **100% Client-Side Persistence**: Every transaction, budget envelope, and account record is stored locally in your browser's IndexedDB.
+2. **Zero-Knowledge Architecture**: All sensitive credentials and exports can be locked with military-grade AES-256-GCM encryption derived from PBKDF2 passphrases.
+3. **Hardware-Accelerated On-Device AI**: Categorizes raw bank and UPI statements using learned patterns, 40+ regex rules, and local on-device WebLLM (Gemma 2B via WebGPU) without sending a single byte over the wire.
+4. **Installable Native System**: Runs as a standalone desktop or mobile application on Windows, macOS, Linux, iOS, and Android with full offline operation.
 
 ---
 
-## Getting Started
+## 🚀 Key Feature Highlights
 
-### For End Users
-Open FinTrack Pro in any modern browser, or click **"Install App"** in the sidebar to run it as a standalone system application. No login or signup required.
+### 📊 Financial Dashboard & Analytics
+- **Live Net Worth & Cashflow**: Instant visual overview of your assets, liabilities, monthly savings rate, and income vs. expenses.
+- **Interactive Visualizers**: Powered by Chart.js with dark-mode aesthetic styling and responsive hover tooltips.
+- **KPI Metrics**: Monthly comparisons, streak tracking, and automated budget overrun alerts.
 
-### For Developers & Testing
+### 💳 Transaction Engine & Smart Management
+- **Full CRUD with Metadata**: Accounts, categories, tags, custom notes, and split transaction balancing.
+- **Automated Recurring Entries**: Configurable daily, weekly, monthly, and yearly recurring transactions with catch-up generation.
+- **Instant Search & Deep Filtering**: Filter by date ranges, categories, accounts, payment types, or freeform regex queries.
 
-**Prerequisites**: Node.js 18+ and npm
+### 📄 Intelligent Bank Statement Import & OCR
+- **Multi-Format Ingestion**: Full support for **CSV, QIF, and PDF** statement parsing.
+- **Bank Auto-Detection**: Pre-configured profiles for international (Chase, Wells Fargo, Barclays, ANZ) and Indian banking institutions (SBI, HDFC, ICICI, Axis, Kotak, PNB, BOB, Canara, Federal, IDFC).
+- **UPI & Merchant Normalization**: Intelligent extraction of merchant entities from Indian UPI/NEFT/IMPS description strings.
+- **Smart Deduplication Engine**: Hash-based and fuzzy-timestamp comparison preventing duplicate entries.
+- **Optical Character Recognition (OCR)**: In-browser receipt scanning powered by Tesseract.js (WASM).
+
+### 🤖 3-Tier Categorization Pipeline
+```
+Raw Description ──► [Tier 1: Learned User Patterns]
+                         │ (Miss)
+                         ▼
+                    [Tier 2: 40+ Bank & Merchant Regex]
+                         │ (Miss)
+                         ▼
+                    [Tier 3: Local WebLLM Gemma 2B / User API]
+```
+
+### 🛡️ Credential Vault & Privacy Guard
+- **AES-256-GCM Encryption**: Web Crypto API standard encryption with salted PBKDF2 key derivation.
+- **Zero Outbound Leakage**: Strict local network proxy intercepting and neutralizing unauthorized outbound telemetry.
+- **Sanitized Exports**: Plaintext API tokens and passphrases are strictly scrubbed from JSON backups and error logs.
+
+### 💎 Emil Kowalski Design Engineering
+- **Tactile Button Feedback**: Responsive `:active { transform: scale(0.97) }` feedback tuned for natural ergonomics.
+- **Spring Easings**: Custom cubic-bezier physics (`cubic-bezier(0.16, 1, 0.3, 1)`) for buttery smooth entrances.
+- **Zero Native Dialog Traps**: Fully replaced browser `alert()`, `confirm()`, and `prompt()` with accessible glassmorphic modal and toast dialogs.
+- **Mobile Ergonomics**: Dynamic `100dvh` viewport scaling, `-webkit-tap-highlight-color: transparent`, and 16px font-size protection to eliminate iOS Safari auto-zoom.
+
+---
+
+## 🏛️ System Architecture
+
+```mermaid
+flowchart TD
+    subgraph Client ["Client Device (Browser / Standalone Native Window)"]
+        UI["Modern Vanilla JS UI<br/>(ESM Modules + CSS Custom Properties)"]
+        Router["Hash-based SPA Router<br/>(Zero-Reload Views)"]
+        Store["Reactive Pub/Sub Store<br/>(State Management)"]
+        Dialog["Accessible Dialog System<br/>(Modals & Toast Engine)"]
+        PWA["PWA Service Worker<br/>(Workbox Offline Caching)"]
+
+        subgraph CoreServices ["Core Services"]
+            Categorizer["3-Tier Categorization Engine"]
+            Parsers["Statement Parsers (CSV / QIF / PDF)"]
+            NetWorth["Net Worth & Compound Forecasting"]
+            OCR["Tesseract.js In-Browser OCR"]
+            WebLLM["WebLLM (Local Gemma 2B)"]
+        end
+
+        subgraph SecurityLayer ["Security & Storage Layer"]
+            Vault["AES-256-GCM Encryption Vault"]
+            NetProxy["Outbound Network Privacy Guard"]
+            IDB[("IndexedDB Database<br/>(Local Storage)")]
+        end
+    end
+
+    UI --> Router
+    Router --> Store
+    Store <--> CoreServices
+    CoreServices <--> Vault
+    Vault <--> IDB
+    UI --> Dialog
+    PWA -.-> UI
+    NetProxy -.-> CoreServices
+```
+
+---
+
+## 📲 Native System Installation
+
+FinTrack Pro is built as an installable standalone application:
+
+| Operating System | Installation Method | Experience |
+| :--- | :--- | :--- |
+| **Windows 10 / 11** | Edge / Chrome "Install FinTrack Pro" in sidebar | Native window, desktop icon, start menu pin |
+| **macOS** | Safari ("Add to Dock") or Chrome ("Install") | Dedicated macOS dock app, full Command-Tab integration |
+| **Linux** | Chromium / Chrome PWA install | Freedesktop `.desktop` launcher & system app menu |
+| **iOS / iPadOS** | Safari Share Menu → "Add to Home Screen" | Fullscreen standalone app without browser chrome |
+| **Android** | Chrome / Firefox "Install App" banner | Native launcher icon with full offline support |
+
+👉 **Read the complete guide in [docs/INSTALLATION.md](docs/INSTALLATION.md).**
+
+---
+
+## 🧪 Quality Assurance & Test Verification
+
+FinTrack Pro enforces strict automated quality gates:
+
+| Test Suite | Framework | Tests | Status |
+| :--- | :--- | :---: | :---: |
+| **Unit & Integration** | Vitest v5 | **197 passed** | ✅ 100% Pass |
+| **End-to-End User Journeys** | Playwright | **8 passed** | ✅ 100% Pass |
+| **Accessibility (Axe-Core)** | `@axe-core/playwright` | **0 violations** | ✅ WCAG 2.1 AA |
+| **Static Code Analysis** | ESLint v9 | **0 errors, 0 warnings** | ✅ Clean |
+| **Production Build** | Vite v8.2 | **Emitted in ~2.7s** | ✅ Zero warnings |
+
+---
+
+## 🛠️ Developer Quickstart
 
 ```bash
-# 1. Install dependencies
+# 1. Clone the repository
+git clone https://github.com/sivak/expense-tracker.git
+cd "Expense Tracker"
+
+# 2. Install dependencies
 npm install
 
-# 2. Run unit & integration tests (197 tests, 100% pass)
+# 3. Run unit and integration tests
 npm test
 
-# 3. Run Playwright E2E & Axe accessibility audits (8 suites, 100% pass)
+# 4. Run Playwright E2E and accessibility audits
 npm run test:e2e
 
-# 4. Run ESLint code quality audit (0 errors, 0 warnings)
+# 5. Run static code analysis
 npm run lint
 
-# 5. Build production bundle
+# 6. Build the production release
 npm run build
 
-# 6. Preview production build locally
+# 7. Preview the optimized production bundle
 npm run preview
 ```
 
-The production build outputs to the `dist/` folder. Host it on any static file server — Netlify, Vercel, GitHub Pages, Nginx, or similar.
-
 ---
 
-## Project Structure
+## 📁 Repository Structure
 
 ```
 Expense Tracker/
-├── index.html          # App shell + global CSS variables
-├── manifest.json       # PWA manifest
-├── sw.js               # Service Worker (Workbox-based caching)
-├── vite.config.js      # Build configuration
-├── package.json        # Dependencies & scripts
-└── src/
-    ├── main.js         # App entry point & bootstrap
-    ├── router.js       # Hash-based SPA router
-    ├── store.js        # Reactive state management
-    ├── db.js           # IndexedDB wrapper (CRUD operations)
-    ├── crypto.js       # AES-256 encryption utilities
-    ├── modules/        # Feature modules (one folder per page)
-    │   ├── dashboard/
-    │   ├── transactions/
-    │   ├── analytics/
-    │   ├── budgets/
-    │   ├── accounts/
-    │   ├── ai/
-    │   ├── reports/
-    │   ├── import/
-    │   ├── corporate/
-    │   ├── settings/
-    │   ├── networth/
-    │   ├── investments/
-    │   ├── goals/
-    │   ├── debt/
-    │   └── onboarding/
-    ├── services/       # Shared business logic
-    │   ├── ai-engine.js
-    │   ├── categorizer.js
-    │   ├── currency.js
-    │   ├── ocr.js
-    │   ├── user-api.js
-    │   └── webllm-loader.js
-    ├── parsers/        # Bank statement parsers
-    │   ├── csv-parser.js
-    │   ├── pdf-parser.js
-    │   ├── ofx-parser.js
-    │   ├── deduplication.js
-    │   └── bank-profiles/
-    │       ├── india/  (SBI, HDFC, ICICI, Axis, Kotak, PNB, BOB...)
-    │       └── world/  (International banks)
-    ├── styles/         # Modular CSS
-    └── utils/          # Shared utility functions
+├── index.html                    # App shell & typography tokens
+├── manifest.json                 # Standalone PWA manifest
+├── sw.js                         # Service Worker caching rules
+├── vite.config.js                # Vite build configuration
+├── PROJECT.md                    # Milestone tracker & roadmap
+├── TECHNICAL_ARCHITECTURE.md     # In-depth architectural blueprint
+│
+├── brag-output/                  # Launch video deliverables
+│   ├── brag.mp4                  # 1080p 30fps Launch Showcase Video
+│   ├── brag.jpg                  # Settled poster thumbnail
+│   ├── brag-plan.md              # Storyboard and creative direction
+│   └── share-copy.txt            # Ready-to-publish launch copy
+│
+├── docs/                         # Project documentation
+│   ├── INSTALLATION.md           # OS-specific installation manual
+│   ├── CHANGELOG.md              # Version releases and upgrade notes
+│   ├── SECURITY.md               # Zero-knowledge security model
+│   └── CODEBASE_AUDIT.md         # Comprehensive audit report
+│
+├── public/                       # Static public assets
+│   ├── manifest.json             # Root-served PWA manifest
+│   ├── favicon.svg               # Application favicon
+│   └── icons.svg                 # SVG sprite sheet
+│
+├── tests/                        # Automated test suites
+│   ├── unit/                     # Unit test suites (197 tests)
+│   ├── integration/              # Multi-tier database & security tests
+│   ├── e2e/                      # Playwright E2E & Axe accessibility
+│   └── manual/                   # Standalone manual verification scripts
+│
+└── src/                          # Application source code
+    ├── main.js                   # Application bootstrap
+    ├── router.js                 # Hash-based SPA routing
+    ├── store.js                  # Reactive global state
+    ├── db.js                     # IndexedDB interface
+    ├── crypto.js                 # AES-256-GCM encryption
+    ├── network-guard.js          # Outbound network blocker
+    ├── modules/                  # Feature views (Dashboard, Budgets, etc.)
+    ├── services/                 # Business logic & PWA installer
+    ├── parsers/                  # Bank statement parsing engine
+    ├── styles/                   # Modular CSS & Emil Kowalski easings
+    └── utils/                    # Glassmorphic dialog & icon system
 ```
 
 ---
 
-## Privacy & Security
+## 📄 License & Privacy Pledge
 
-| Concern | Answer |
-|---|---|
-| Where is my data stored? | 100% in your browser (IndexedDB) |
-| Does it send data to a server? | Never. Zero network requests for your data |
-| What about AI features? | On-device (WebLLM/Gemma 2B) by default. Optionally, use your own API key |
-| Can I export my data? | Yes — full JSON backup, CSV, or encrypted AES-256 export |
-| Can I use it offline? | Yes — full functionality offline after first load |
+FinTrack Pro is open-source software licensed under the **MIT License**.
 
----
-
-## Technology Stack
-
-| Technology | Purpose |
-|---|---|
-| **Vite** | Build tool & dev server |
-| **Vanilla JavaScript (ES Modules)** | Zero framework overhead |
-| **IndexedDB (via idb)** | Client-side persistent storage |
-| **Chart.js** | Interactive financial charts |
-| **@mlc-ai/web-llm** | On-device LLM (Gemma 2B via WebGPU) |
-| **Tesseract.js** | On-device OCR for receipt scanning |
-| **PapaParse** | CSV parsing |
-| **jsPDF + html2canvas** | PDF report generation |
-| **SheetJS (xlsx)** | Excel export |
-| **Workbox** | Service Worker & PWA caching |
-| **Web Crypto API** | AES-256-GCM encryption |
-
----
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Make your changes
-4. Test in a browser: `npm run dev`
-5. Submit a pull request
-
----
-
-## License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-<div align="center">
-
-**Your finances. Your device. Your privacy.**
-
-</div>
+**Our Privacy Pledge**: This project will never incorporate third-party analytics trackers, remote telemetry, proprietary advertisement SDKs, or cloud synchronization mandates. Your financial sovereignty is absolute.

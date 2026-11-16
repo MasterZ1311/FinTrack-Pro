@@ -71,6 +71,7 @@ Every feature from the Survey phase is mapped to a milestone.
 | M4 | Test Suite & Parser Coverage Expansion | R5: Dual-track test suite, 80+ parser tests, Indian/international formats, security tests, financial logic tests, coverage >=60%, test count >=150 | M1, M2, M3 | COMPLETE |
 | M5 | Final Verification & Hardening Gate | Acceptance verification: pass 100% tests (197 unit/integration tests), 0 lint errors, clean build, Forensic Integrity Audit | M1, M2, M3, M4 | COMPLETE |
 | M6 | System Installability & Emil Kowalski Design Engineering | PWA standalone installation service, zero native alerts (custom modal/toast system), WCAG 2.1 AA color contrast compliance, tactile :active button micro-interactions, 8 Playwright E2E suites | M1, M2, M3, M4, M5 | COMPLETE |
+| M7 | Professional Repository Showcase & Launch Media | 1080p 30fps launch showcase video with synced stereo soundtrack (brag / brag-slim), README showcase, architecture diagram, and directory organization | M1, M2, M3, M4, M5, M6 | COMPLETE |
 
 ---
 

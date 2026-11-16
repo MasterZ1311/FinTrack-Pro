@@ -23,6 +23,11 @@ All notable changes made during the comprehensive hardening and audit remediatio
 - **Playwright E2E & A11y Suite**: All **8 Playwright E2E and Axe accessibility tests pass with 0 errors**.
 - **ESLint & Bundle Clean**: Achieved **0 ESLint errors and 0 ESLint warnings** across the entire repository. Clean Vite production build in ~2.2s.
 
+### Product Launch Showcase & Media Deliverables
+- **High-Definition Launch Showcase Video**: Authored 20.0s 1080p 30fps launch video (`brag-output/brag.mp4`) with high-fidelity Chart.js animation, OCR laser sweep simulation, Emil Kowalski tactile interaction playback, and custom-synthesized stereo electronic soundtrack (`audio.wav`).
+- **Showcase Poster & Ready Share Copy**: Baked settled poster thumbnail (`brag-output/brag.jpg`) and authoring notes in `brag-output/share-copy.txt` and `brag-output/brag-plan.md`.
+- **Repository Reorganization**: Cleaned up obsolete migration scripts, moved manual tests to `tests/manual/`, centralized PWA manifests in `public/`, and modernized README with interactive showcase video links.
+
 ---
 
 ## [1.0.0-hardened] — 2026-10-03
