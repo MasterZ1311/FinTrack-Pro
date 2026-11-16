@@ -156,9 +156,9 @@ FinTrack Pro enforces strict automated quality gates:
 ## 🛠️ Developer Quickstart
 
 ```bash
-# 1. Clone the repository
+# 1. Clone the GitHub repository
 git clone https://github.com/sivak/expense-tracker.git
-cd "Expense Tracker"
+cd expense-tracker
 
 # 2. Install dependencies
 npm install
@@ -184,7 +184,7 @@ npm run preview
 ## 📁 Repository Structure
 
 ```
-Expense Tracker/
+expense-tracker/                  # https://github.com/sivak/expense-tracker
 ├── index.html                    # App shell & typography tokens
 ├── manifest.json                 # Standalone PWA manifest
 ├── sw.js                         # Service Worker caching rules

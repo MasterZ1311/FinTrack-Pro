@@ -53,7 +53,7 @@
 ## 2. Repository Layout
 
 ```
-Expense Tracker/
+expense-tracker/                  # GitHub: https://github.com/sivak/expense-tracker
 │
 ├── index.html                    # App shell HTML; global CSS design tokens
 ├── manifest.json                 # PWA Web App Manifest (source)
