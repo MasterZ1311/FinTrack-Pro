@@ -12,6 +12,7 @@ import { initSidebar } from './modules/dashboard/sidebar.js';
 import { initTopbar } from './modules/dashboard/topbar.js';
 import { credentialVault } from './services/credential-vault.js';
 import { privacyManager } from './services/privacy-manager.js';
+import { initPWAInstaller } from './services/pwa-installer.js';
 
 // ─── App Initialization ──────────────────────────────────────────────────────
 
@@ -19,6 +20,9 @@ async function bootstrap() {
   console.log('[FinTrack] Bootstrapping application...');
 
   try {
+    // 0. Initialize PWA installer listener
+    initPWAInstaller();
+
     // 1. Run localStorage → IndexedDB migration (idempotent)
     await migrate();
     console.log('[FinTrack] Migration check complete.');

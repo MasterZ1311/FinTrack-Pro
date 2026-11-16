@@ -1,4 +1,4 @@
-export function generateInsights(transactions, profile) {
+export function generateInsights(transactions, _profile) {
   const insights = [];
   
   if (!transactions || transactions.length === 0) return insights;

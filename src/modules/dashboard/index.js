@@ -14,7 +14,7 @@ function formatCurrency(amount) {
       currency: currency,
       maximumFractionDigits: 2,
     }).format(amount);
-  } catch (e) {
+  } catch (_e) {
     return `₹${Number(amount || 0).toFixed(2)}`;
   }
 }

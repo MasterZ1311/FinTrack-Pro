@@ -22,6 +22,9 @@ test.describe('FinTrack Pro Accessibility Audits (Axe-Core)', () => {
       );
       for (const v of scanResults.violations) {
         console.warn(` - [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} occurrences)`);
+        for (const n of v.nodes) {
+          console.warn(`   node: ${n.target.join(' ')} | html: ${n.html}`);
+        }
       }
     }
 

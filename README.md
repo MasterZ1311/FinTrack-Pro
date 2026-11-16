@@ -89,42 +89,39 @@ It's designed for people who want a **powerful, professional-grade expense track
 - Data export/import (full backup & restore as JSON)
 - AES-256 encrypted backup export
 
-### Progressive Web App (PWA)
-- **Install on any device** — works like a native app on desktop and mobile
-- **Full offline support** — all features work without internet
-- Responsive design optimized for both mobile and desktop
+### Progressive Web App & Native System Installation
+- **Install on any device** — install as a standalone native app on Windows, macOS, Linux, iOS, and Android
+- **Full offline support** — all features work with zero internet connectivity
+- **See [docs/INSTALLATION.md](docs/INSTALLATION.md)** for detailed installation steps per operating system.
 
 ---
 
 ## Getting Started
 
-### For End Users (No Installation Needed)
+### For End Users
+Open FinTrack Pro in any modern browser, or click **"Install App"** in the sidebar to run it as a standalone system application. No login or signup required.
 
-Open the app in any modern browser. No login, no signup required. Your data stays entirely on your device.
-
-### For Developers — Running Locally
+### For Developers & Testing
 
 **Prerequisites**: Node.js 18+ and npm
 
 ```bash
-# 1. Clone the repository
-git clone <repository-url>
-cd "Expense Tracker"
-
-# 2. Install dependencies
+# 1. Install dependencies
 npm install
 
-# 3. Start the development server
-npm run dev
-```
+# 2. Run unit & integration tests (197 tests, 100% pass)
+npm test
 
-The app will open at `http://localhost:5173` (or similar).
+# 3. Run Playwright E2E & Axe accessibility audits (8 suites, 100% pass)
+npm run test:e2e
 
-```bash
-# Build for production
+# 4. Run ESLint code quality audit (0 errors, 0 warnings)
+npm run lint
+
+# 5. Build production bundle
 npm run build
 
-# Preview the production build
+# 6. Preview production build locally
 npm run preview
 ```
 

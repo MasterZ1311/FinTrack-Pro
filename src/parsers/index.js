@@ -295,6 +295,7 @@ export {
   allBankProfiles,
   getProfileById,
   detectProfileFromText,
+  detectBank,
   parseBankCSV,
   parseBankPDF,
   parseOFX,

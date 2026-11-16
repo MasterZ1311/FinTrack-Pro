@@ -23,6 +23,7 @@ import { getAll, add as dbAdd, update as dbUpdate, remove as dbRemove } from '..
 import { store } from '../../store.js';
 import { Icons } from '../../utils/icons.js';
 import { CATEGORY_MAP } from '../transactions/categories.js';
+import { confirmModal, showToast } from '../../utils/dialog.js';
 import { calculateFinancialHealth, renderHealthScoreSVG } from '../ai/health-score.js';
 
 // ─── Period Helpers ───────────────────────────────────────────────────────────
@@ -521,7 +522,7 @@ function renderEnvelopeView(container) {
       }
     </div>
     <div class="budget-grid">
-      ${envelopes.map(({ budget, status, catLabel, catIcon }) => renderBudgetCard(budget, status)).join('')}
+      ${envelopes.map(({ budget, status }) => renderBudgetCard(budget, status)).join('')}
     </div>
   `;
 }
@@ -587,7 +588,7 @@ export default {
 
       // Budget card actions
       container.querySelectorAll('.budget-card-actions button').forEach((btn) => {
-        btn.addEventListener('click', async (e) => {
+        btn.addEventListener('click', async () => {
           const { action, id } = btn.dataset;
           const budget = store.state.budgets.find((b) => b.id === id);
           if (!budget) return;
@@ -595,10 +596,18 @@ export default {
           if (action === 'edit') {
             openBudgetModal(budget, true, () => renderPage(activeTab));
           } else if (action === 'delete') {
-            if (confirm(`Delete "${CATEGORY_MAP[budget.category]?.label ?? budget.category}" budget?`)) {
+            const label = CATEGORY_MAP[budget.category]?.label ?? budget.category;
+            const ok = await confirmModal({
+              title: 'Delete Budget',
+              message: `Are you sure you want to delete the "${label}" budget?`,
+              confirmText: 'Delete Budget',
+              danger: true,
+            });
+            if (ok) {
               await dbRemove('budgets', id);
               const all = await getAll('budgets');
               store.setState('budgets', all);
+              showToast(`Deleted "${label}" budget`, 'info');
               renderPage(activeTab);
             }
           }

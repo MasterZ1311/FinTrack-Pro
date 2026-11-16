@@ -4,6 +4,8 @@ import { credentialVault } from '../../services/credential-vault.js';
 import { privacyManager } from '../../services/privacy-manager.js';
 import { PROVIDER_ENDPOINTS } from '../../services/user-api.js';
 import { escapeHtml } from '../../utils/security.js';
+import { alertModal, confirmModal, showToast } from '../../utils/dialog.js';
+import { installApp, isStandalone } from '../../services/pwa-installer.js';
 
 export async function render(container) {
   const profile = store.getState('profile') || {};
@@ -74,6 +76,18 @@ export async function render(container) {
                 <option value="es">Español</option>
                 <option value="fr">Français</option>
               </select>
+            </div>
+            <div style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border-subtle);">
+              <label style="display: block; margin-bottom: var(--space-2); color: var(--text-secondary); font-size: 0.875rem;">System Installation</label>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                <div>
+                  <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">${isStandalone() ? 'Installed System App' : 'Install to Device'}</div>
+                  <div style="font-size: 0.8rem; color: var(--text-secondary);">${isStandalone() ? 'Running in standalone desktop/mobile window.' : 'Install FinTrack Pro as a native desktop or mobile app with offline capability.'}</div>
+                </div>
+                <button type="button" class="btn btn-secondary" id="btn-settings-install" ${isStandalone() ? 'disabled style="opacity:0.6;"' : ''}>
+                  ${isStandalone() ? '✓ Installed' : 'Install App'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -244,6 +258,14 @@ function attachEventListeners(container) {
     });
   }
 
+  // System Installation button
+  const btnSettingsInstall = container.querySelector('#btn-settings-install');
+  if (btnSettingsInstall) {
+    btnSettingsInstall.addEventListener('click', async () => {
+      await installApp();
+    });
+  }
+
   // Profile Form
   const profileForm = container.querySelector('#profile-form');
   if (profileForm) {
@@ -257,7 +279,7 @@ function attachEventListeners(container) {
 
       await update('profiles', profile);
       store.setState('profile', profile);
-      alert('Profile saved successfully!');
+      showToast('Profile saved successfully!', 'success');
     });
   }
 
@@ -278,10 +300,7 @@ function attachEventListeners(container) {
       const selected = container.querySelector('input[name="privacy-mode-radio"]:checked');
       if (selected) {
         await privacyManager.setMode(selected.value);
-        store.notify({
-          type: 'success',
-          message: `Privacy mode updated to ${selected.value}`,
-        });
+        showToast(`Privacy mode updated to ${selected.value}`, 'success');
       }
     });
   }
@@ -292,25 +311,31 @@ function attachEventListeners(container) {
     btnMigrate.addEventListener('click', async () => {
       const pass = container.querySelector('#legacy-passphrase')?.value;
       if (!pass) {
-        alert('Please enter a passphrase to encrypt your legacy key.');
+        showToast('Please enter a passphrase to encrypt your legacy key.', 'warning');
         return;
       }
       try {
         await credentialVault.migrateLegacyCredentials(pass);
-        store.notify({ type: 'success', message: 'Legacy key encrypted into vault successfully!' });
+        showToast('Legacy key encrypted into vault successfully!', 'success');
         render(container);
       } catch (err) {
-        alert(`Migration failed: ${err.message}`);
+        alertModal({ title: 'Migration Error', message: err.message, type: 'danger' });
       }
     });
   }
 
   const btnDiscard = container.querySelector('#btn-discard-legacy');
   if (btnDiscard) {
-    btnDiscard.addEventListener('click', () => {
-      if (confirm('Discard unencrypted legacy key?')) {
+    btnDiscard.addEventListener('click', async () => {
+      const ok = await confirmModal({
+        title: 'Discard Legacy Key',
+        message: 'Are you sure you want to discard your unencrypted legacy API key from browser storage?',
+        confirmText: 'Discard Key',
+        danger: true,
+      });
+      if (ok) {
         credentialVault.discardLegacyCredentials();
-        store.notify({ type: 'info', message: 'Legacy key purged from browser storage.' });
+        showToast('Legacy key purged from browser storage.', 'info');
         render(container);
       }
     });
@@ -325,7 +350,7 @@ function attachEventListeners(container) {
       const pass = container.querySelector('#vault-passphrase').value;
 
       if (!pass) {
-        alert('Please enter a vault passphrase to encrypt your key.');
+        showToast('Please enter a vault passphrase to encrypt your key.', 'warning');
         return;
       }
 
@@ -333,7 +358,7 @@ function attachEventListeners(container) {
       const apiKeyToSave = key || existing?.apiKey;
 
       if (!apiKeyToSave) {
-        alert('Please enter an API key.');
+        showToast('Please enter an API key.', 'warning');
         return;
       }
 
@@ -343,10 +368,10 @@ function attachEventListeners(container) {
           { provider, apiKey: apiKeyToSave, model: 'gemini-1.5-flash' },
           pass
         );
-        store.notify({ type: 'success', message: 'API credentials encrypted and saved!' });
+        showToast('API credentials encrypted and saved in vault!', 'success');
         render(container);
       } catch (err) {
-        alert(`Failed to encrypt and store credentials: ${err.message}`);
+        alertModal({ title: 'Vault Encryption Error', message: err.message, type: 'danger' });
       }
     });
   }
@@ -357,15 +382,15 @@ function attachEventListeners(container) {
     btnUnlock.addEventListener('click', async () => {
       const pass = container.querySelector('#vault-passphrase').value;
       if (!pass) {
-        alert('Please enter your vault passphrase.');
+        showToast('Please enter your vault passphrase.', 'warning');
         return;
       }
       try {
         await credentialVault.unlock(pass);
-        store.notify({ type: 'success', message: 'Vault unlocked!' });
+        showToast('Vault unlocked successfully!', 'success');
         render(container);
       } catch (err) {
-        alert(`Failed to unlock vault: ${err.message}`);
+        showToast(`Failed to unlock vault: ${err.message}`, 'danger');
       }
     });
   }
@@ -375,7 +400,7 @@ function attachEventListeners(container) {
   if (btnLock) {
     btnLock.addEventListener('click', () => {
       credentialVault.lock();
-      store.notify({ type: 'info', message: 'Vault locked. In-memory keys cleared.' });
+      showToast('Vault locked. In-memory keys cleared.', 'info');
       render(container);
     });
   }
@@ -384,9 +409,15 @@ function attachEventListeners(container) {
   const btnClearCreds = container.querySelector('#btn-clear-creds');
   if (btnClearCreds) {
     btnClearCreds.addEventListener('click', async () => {
-      if (confirm('Delete stored API credentials?')) {
+      const ok = await confirmModal({
+        title: 'Delete Credentials',
+        message: 'Are you sure you want to delete stored API credentials from the vault?',
+        confirmText: 'Delete Credentials',
+        danger: true,
+      });
+      if (ok) {
         await credentialVault.deleteCredentials('ai_config');
-        store.notify({ type: 'info', message: 'API credentials deleted.' });
+        showToast('API credentials deleted.', 'info');
         render(container);
       }
     });
@@ -418,6 +449,7 @@ function attachEventListeners(container) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      showToast('Data exported successfully!', 'success');
     });
   }
 
@@ -425,19 +457,23 @@ function attachEventListeners(container) {
   const btnWipe = container.querySelector('#btn-wipe-data');
   if (btnWipe) {
     btnWipe.addEventListener('click', async () => {
-      if (confirm('Are you absolutely sure you want to wipe ALL data? This action cannot be undone.')) {
-        if (confirm('Final warning: All accounts, transactions, and settings will be deleted.')) {
-          await clear('profiles');
-          await clear('accounts');
-          await clear('transactions');
-          await clear('categories');
-          await clear('budgets');
-          await credentialVault.clearAll();
-          localStorage.clear();
+      const ok = await confirmModal({
+        title: 'Permanent Data Wipe',
+        message: 'Are you absolutely sure you want to wipe ALL data? All accounts, transactions, budgets, categories, and settings will be permanently erased. This cannot be undone.',
+        confirmText: 'Wipe Everything',
+        danger: true,
+      });
+      if (ok) {
+        await clear('profiles');
+        await clear('accounts');
+        await clear('transactions');
+        await clear('categories');
+        await clear('budgets');
+        await credentialVault.clearAll();
+        localStorage.clear();
 
-          window.location.hash = '#/onboarding';
-          window.location.reload();
-        }
+        window.location.hash = '#/onboarding';
+        window.location.reload();
       }
     });
   }

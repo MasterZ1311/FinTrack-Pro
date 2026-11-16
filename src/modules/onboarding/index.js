@@ -11,6 +11,7 @@ import { navigate } from '../../router.js';
 import { renderWelcome } from './welcome.js';
 import { renderIndividualForm } from './individual-form.js';
 import { renderCorporateForm } from './corporate-form.js';
+import { createIndividualProfile, createCorporateProfile } from './profile-schema.js';
 
 // ─── CSS injection ─────────────────────────────────────────────────────────────
 
@@ -239,19 +240,19 @@ function injectStyles() {
     }
     .ob-card-features li {
       font-size: 0.8125rem;
-      color: #64748b;
+      color: #cbd5e1;
     }
 
     .ob-card-arrow {
       position: absolute;
       top: 28px;
       right: 20px;
-      color: #475569;
+      color: #94a3b8;
       transition: transform 0.2s, color 0.2s;
     }
     .ob-card:hover .ob-card-arrow {
       transform: translateX(4px);
-      color: #94a3b8;
+      color: #e2e8f0;
     }
 
     /* Gradient border */
@@ -280,8 +281,8 @@ function injectStyles() {
       flex-wrap: wrap;
       justify-content: center;
     }
-    .ob-trust-item { font-size: 0.8125rem; color: #64748b; }
-    .ob-trust-sep { color: #334155; }
+    .ob-trust-item { font-size: 0.8125rem; color: #94a3b8; }
+    .ob-trust-sep { color: #64748b; }
 
     /* ════════════════════════════════════════════
        FORM WRAPPER & PANEL
@@ -1027,8 +1028,6 @@ function showWelcome() {
  */
 async function completeOnboarding(formData, type) {
   try {
-    const { createIndividualProfile, createCorporateProfile } = await import('./profile-schema.js');
-
     const profile =
       type === 'individual'
         ? createIndividualProfile(formData)

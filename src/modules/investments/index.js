@@ -1,5 +1,5 @@
 import { store } from '../../store.js';
-import { add, update, remove, getAll } from '../../db.js';
+import { add, getAll } from '../../db.js';
 
 let unsubscribe = null;
 let chartInstance = null;

@@ -3,7 +3,7 @@
  * Full import workflow: file drop → bank detection → preview → mapping → review → commit.
  */
 
-import { parseStatement, allBankProfiles, getProfileById } from '../../parsers/index.js';
+import { parseStatement, allBankProfiles } from '../../parsers/index.js';
 import { add as dbAdd, getAll } from '../../db.js';
 import { store } from '../../store.js';
 import { navigate } from '../../router.js';
@@ -406,7 +406,7 @@ function renderSummary() {
   importState.step = 4;
   if (!container) return;
 
-  const { parseResult, transactions } = importState;
+  const { parseResult } = importState;
   const summary = parseResult.summary;
   const profile = parseResult.bankProfile;
   const currency = profile?.currency || '';

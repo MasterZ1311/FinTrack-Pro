@@ -2,9 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="description" content="FinTrack Pro — Professional expense tracking, budgeting, and financial analytics" />
   <meta name="theme-color" content="#0a0f1e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FinTrack Pro" />
 
   <title>FinTrack Pro — Expense Tracker</title>
 
@@ -29,13 +32,13 @@
       --bg-secondary:  #111827;
       --bg-card:       #1a1f35;
       --bg-elevated:   #232a42;
-      --border:        rgba(255, 255, 255, 0.06);
+      --border:        rgba(255, 255, 255, 0.08);
       --border-active: rgba(99, 102, 241, 0.5);
 
-      /* Text */
-      --text-primary:   #f1f5f9;
-      --text-secondary: #94a3b8;
-      --text-muted:     #64748b;
+      /* Text — WCAG 2.1 AA compliant contrast ratios against dark backgrounds */
+      --text-primary:   #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted:     #94a3b8;
 
       /* Accent */
       --accent:         #6366f1;
@@ -48,7 +51,12 @@
       --danger:   #ef4444;
       --info:     #3b82f6;
 
-      /* Spacing */
+      /* Emil Kowalski Custom Easing Tokens */
+      --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+      --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+      /* Spacing & Shell */
       --sidebar-w: 260px;
       --topbar-h:  64px;
       --radius:    12px;
@@ -62,12 +70,21 @@
       color: var(--text-primary);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: contain;
+    }
+
+    button, a, [role="button"] {
+      touch-action: manipulation;
     }
 
     /* ── App Layout ─────────────────────────────────────────── */
     #app-wrapper {
       display: flex;
       height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
       overflow: hidden;
     }
 

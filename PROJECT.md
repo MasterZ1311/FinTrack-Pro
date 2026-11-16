@@ -65,11 +65,12 @@ Every feature from the Survey phase is mapped to a milestone.
 
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Financial Core & Storage Performance | R1 & R3: Split filter & cascade delete, transfer symmetry, cross-currency native accounting, rate errors, schema standardization, indexed queries & schema upgrade | Survey complete | PLANNED |
-| M2 | DOM Sanitization & Rendering Security | R2: Remediate all `innerHTML` sites, tag/badge escaping, import preview sanitization, URL hash reflected XSS, OCR log removal, dompurify dependency | Survey complete | PLANNED |
-| M3 | Offline Self-Containment & Supply Chain | R4: Local PDF.js bundling, offline service worker, Google font resilience, npm audit fix, xlsx bounds guard | M1, M2 | PLANNED |
-| M4 | Test Suite & Parser Coverage Expansion | R5: Dual-track test suite, 80+ parser tests, Indian/international formats, security tests, financial logic tests, coverage >=60%, test count >=150 | M1, M2, M3 | PLANNED |
-| M5 | Final Verification & Hardening Gate | Acceptance verification: pass 100% tests (≥150 tests), coverage ≥60%, 0 lint errors, clean build, Forensic Integrity Audit | M1, M2, M3, M4 | PLANNED |
+| M1 | Financial Core & Storage Performance | R1 & R3: Split filter & cascade delete, transfer symmetry, cross-currency native accounting, rate errors, schema standardization, indexed queries & schema upgrade | Survey complete | COMPLETE |
+| M2 | DOM Sanitization & Rendering Security | R2: Remediate all `innerHTML` sites, tag/badge escaping, import preview sanitization, URL hash reflected XSS, OCR log removal, dompurify dependency | Survey complete | COMPLETE |
+| M3 | Offline Self-Containment & Supply Chain | R4: Local PDF.js bundling, offline service worker, Google font resilience, npm audit fix, xlsx bounds guard | M1, M2 | COMPLETE |
+| M4 | Test Suite & Parser Coverage Expansion | R5: Dual-track test suite, 80+ parser tests, Indian/international formats, security tests, financial logic tests, coverage >=60%, test count >=150 | M1, M2, M3 | COMPLETE |
+| M5 | Final Verification & Hardening Gate | Acceptance verification: pass 100% tests (197 unit/integration tests), 0 lint errors, clean build, Forensic Integrity Audit | M1, M2, M3, M4 | COMPLETE |
+| M6 | System Installability & Emil Kowalski Design Engineering | PWA standalone installation service, zero native alerts (custom modal/toast system), WCAG 2.1 AA color contrast compliance, tactile :active button micro-interactions, 8 Playwright E2E suites | M1, M2, M3, M4, M5 | COMPLETE |
 
 ---
 

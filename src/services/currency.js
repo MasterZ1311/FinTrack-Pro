@@ -275,7 +275,7 @@ export function formatCurrency(amount, currencyCode, locale) {
        minimumFractionDigits: currencyInfo.decimals,
        maximumFractionDigits: currencyInfo.decimals
      }).format(amount);
-  } catch (e) {
+  } catch (_e) {
     // Fallback if currency code is not supported by Intl
     return `${currencyInfo.symbol}${formattedNumber}`;
   }

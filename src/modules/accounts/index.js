@@ -1,6 +1,8 @@
 import { getAll, getById, add, update, getByIndex } from '../../db.js';
 import store from '../../store.js';
 import { formatCurrency, convert } from '../../services/currency.js';
+import { navigate } from '../../router.js';
+import { showToast } from '../../utils/dialog.js';
 
 const ACCOUNT_TYPES = {
   savings: { label: 'Savings Account', icon: '🏦' },
@@ -184,10 +186,8 @@ function renderAccountCard(account) {
   const typeInfo = ACCOUNT_TYPES[account.type] || ACCOUNT_TYPES['savings'];
   const icon = account.icon || typeInfo.icon;
   const color = account.color || '#007bff';
-  const baseCurrency = store.getState('settings')?.baseCurrency || 'USD';
   
-  // If account currency is different from base, we should ideally show base equivalent
-  // For now, just format in account currency
+  // Format in account currency
   const formattedBalance = formatCurrency(account.currentBalance || 0, account.currency, store.getState('settings')?.locale);
   
   return `
@@ -350,7 +350,11 @@ function attachDetailListeners() {
   const btnTransfer = document.getElementById('btn-transfer');
   if (btnTransfer) {
     btnTransfer.addEventListener('click', () => {
-      alert('Transfer functionality to be implemented in a dedicated modal/module.');
+      if (state.selectedAccount) {
+        sessionStorage.setItem('fintrack_prefill_transfer', JSON.stringify({ accountId: state.selectedAccount.id }));
+      }
+      showToast('Opening transfer in transactions...', 'info', 2000);
+      navigate('/transactions');
     });
   }
   

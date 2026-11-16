@@ -4,6 +4,27 @@ All notable changes made during the comprehensive hardening and audit remediatio
 
 ---
 
+## [1.1.0-production-ready] — 2026-11-16
+
+### Native System App & PWA Architecture
+- **PWA System Installer Service**: Built `src/services/pwa-installer.js` bridging browser installation events (`beforeinstallprompt`, `appinstalled`) to native desktop/mobile installation.
+- **Dedicated Install Actions**: Added 1-click "Install App" controls in the desktop sidebar and Settings view with live standalone detection.
+- **Mobile-Native Viewport & Gestures**: Added `height: 100dvh` for dynamic mobile browser chrome, `viewport-fit=cover`, safe area insets, `-webkit-tap-highlight-color: transparent`, and `overscroll-behavior-y: contain`.
+- **Input Zoom Guard**: Added `@media (pointer: coarse)` font-size minimums (16px) on inputs and selects to eliminate iOS Safari viewport auto-zoom defects.
+
+### Emil Kowalski Design Engineering & Accessibility
+- **Zero Native Dialogs**: Replaced all blocking browser `window.alert()`, `window.confirm()`, and `window.prompt()` calls with `src/utils/dialog.js` (accessible glassmorphic modal cards and non-blocking Sonner-style toast stack).
+- **Tactile Button Press Feedback**: Added `:active { transform: scale(0.97); }` with custom cubic-bezier ease-out curves (`cubic-bezier(0.23, 1, 0.32, 1)`) and `@media (hover: hover)` guards to prevent sticky hover on touchscreens.
+- **WCAG 2.1 AA Color Contrast**: Elevated `--text-muted` and `--text-secondary` tokens across `index.html`, `tokens.css`, and `onboarding/index.js`, eliminating all 8 color-contrast violations flagged by Axe-Core.
+
+### Automated Testing & Quality Gate
+- **Test Suite Expansion**: Grew test suite to **197 passing unit and integration tests** across 19 test files.
+- **End-to-End User Journey Tests**: Added `tests/e2e/user-journey.spec.js` validating onboarding, dashboard loading, PWA installation controls, and settings data management.
+- **Playwright E2E & A11y Suite**: All **8 Playwright E2E and Axe accessibility tests pass with 0 errors**.
+- **ESLint & Bundle Clean**: Achieved **0 ESLint errors and 0 ESLint warnings** across the entire repository. Clean Vite production build in ~2.2s.
+
+---
+
 ## [1.0.0-hardened] — 2026-10-03
 
 ### Financial Correctness & Ledger Integrity (Phase 1)

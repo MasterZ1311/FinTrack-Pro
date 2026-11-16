@@ -215,7 +215,6 @@ async function regexFallback(fullText, profile) {
   // US date: MM/DD/YYYY
   // ISO: YYYY-MM-DD
   const datePattern = /(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/g;
-  const amountPattern = /([\d,]+\.\d{2})/g;
   
   const lines = fullText.split(/\n/);
   
@@ -339,7 +338,6 @@ export async function parseBankPDF(arrayBuffer, bankProfile = null) {
     const dateFormat = profile?.dateFormat || null;
     const numberFormat = profile?.numberFormat || 'standard';
     const transactions = [];
-    let lastDescription = '';
     
     for (let i = header.rowIndex + 1; i < rows.length; i++) {
       const row = rows[i];

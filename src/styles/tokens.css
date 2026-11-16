@@ -13,10 +13,15 @@
   --accent-warning: #f59e0b;
   --accent-danger: #f43f5e;
 
-  /* Typography Colors */
+  /* Typography Colors — WCAG 2.1 AA Compliant (min 4.5:1 contrast against dark glass) */
   --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #475569;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  /* Emil Kowalski Easing Tokens */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   /* Borders & Effects */
   --border-subtle: rgba(255, 255, 255, 0.08);

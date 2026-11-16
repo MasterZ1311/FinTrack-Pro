@@ -27,7 +27,7 @@
   transform: translateY(-4px);
 }
 
-/* Buttons */
+/* Buttons — Emil Kowalski responsive press feedback & touch ergonomics */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -39,12 +39,19 @@
   font-size: 0.9rem;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 160ms var(--ease-out), background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
   border: none;
   outline: none;
   gap: var(--space-2);
   position: relative;
   overflow: hidden;
+}
+
+.btn:active {
+  transform: scale(0.97);
 }
 
 .btn-primary {
@@ -53,13 +60,15 @@
   box-shadow: 0 4px 15px rgba(129, 140, 248, 0.3);
 }
 
-.btn-primary:hover {
-  box-shadow: 0 6px 25px rgba(129, 140, 248, 0.5);
-  transform: scale(1.02);
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    box-shadow: 0 6px 25px rgba(129, 140, 248, 0.5);
+    transform: scale(1.02);
+  }
 }
 
 .btn-primary:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
 .btn-secondary {
@@ -69,14 +78,16 @@
   backdrop-filter: var(--glass-blur);
 }
 
-.btn-secondary:hover {
-  background: var(--bg-surface-hover);
-  border-color: var(--accent-primary);
-  color: #fff;
+@media (hover: hover) and (pointer: fine) {
+  .btn-secondary:hover {
+    background: var(--bg-surface-hover);
+    border-color: var(--accent-primary);
+    color: #fff;
+  }
 }
 
 .btn-secondary:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
 .btn-danger {
@@ -84,9 +95,15 @@
   color: #fff;
 }
 
-.btn-danger:hover {
-  box-shadow: 0 6px 25px rgba(244, 63, 94, 0.4);
-  transform: scale(1.02);
+@media (hover: hover) and (pointer: fine) {
+  .btn-danger:hover {
+    box-shadow: 0 6px 25px rgba(244, 63, 94, 0.4);
+    transform: scale(1.02);
+  }
+}
+
+.btn-danger:active {
+  transform: scale(0.97);
 }
 
 .btn-ghost {
@@ -94,9 +111,15 @@
   color: var(--text-secondary);
 }
 
-.btn-ghost:hover {
-  background: var(--bg-surface);
-  color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+  }
+}
+
+.btn-ghost:active {
+  transform: scale(0.97);
 }
 
 /* Inputs */
@@ -123,6 +146,12 @@
   background-image: url('data:image/svg+xml;utf8,<svg fill="%2394a3b8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
   background-position: right var(--space-3) center;
+}
+
+@media (pointer: coarse) {
+  .input-field, .select-field, textarea {
+    font-size: 16px; /* Prevents mobile Safari viewport auto-zoom */
+  }
 }
 
 /* Badge */

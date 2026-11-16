@@ -1,3 +1,5 @@
+import { promptModal, showToast } from '../../utils/dialog.js';
+
 export function render(container) {
   container.innerHTML = `
     <div class="goals-module" style="padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-6);">
@@ -80,14 +82,22 @@ export function render(container) {
 
     // Attach events for Add Funds
     container.querySelectorAll('.add-funds-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         const id = parseInt(e.currentTarget.dataset.id);
         const goal = goals.find(g => g.id === id);
         if (goal) {
-          const amount = prompt(`Add funds to ${goal.name}:`, "100");
-          if (amount && !isNaN(amount)) {
-            goal.saved += parseFloat(amount);
+          const amount = await promptModal({
+            title: `Add Funds to ${goal.name}`,
+            message: `Enter amount to contribute (current: $${goal.saved.toLocaleString()} / $${goal.target.toLocaleString()}):`,
+            defaultValue: '100',
+            placeholder: 'Amount ($)',
+            confirmText: 'Add Funds',
+          });
+          if (amount && !isNaN(parseFloat(amount))) {
+            const added = parseFloat(amount);
+            goal.saved += added;
             renderGoals();
+            showToast(`Added $${added.toLocaleString()} to ${goal.name}!`, 'success');
           }
         }
       });

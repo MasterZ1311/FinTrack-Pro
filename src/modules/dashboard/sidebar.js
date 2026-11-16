@@ -1,4 +1,5 @@
 import { store } from '../../store.js';
+import { installApp, isStandalone } from '../../services/pwa-installer.js';
 
 export function initSidebar() {
   const sidebarEl = document.getElementById('sidebar');
@@ -45,6 +46,12 @@ export function initSidebar() {
       </div>
       
       <div class="sidebar-footer">
+        <button class="nav-item install-app-btn" id="sidebar-install-btn" style="width: 100%; border: none; background: rgba(99, 102, 241, 0.12); color: var(--accent-light); margin-bottom: 8px; cursor: pointer; text-align: left;" title="Install FinTrack Pro">
+          <div class="nav-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          </div>
+          <span class="nav-label" id="sidebar-install-label">${isStandalone() ? 'Installed System' : 'Install App'}</span>
+        </button>
         <div class="nav-item" style="cursor: default;">
           <div class="avatar">${initials}</div>
           <span class="nav-label" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${userName}</span>
@@ -75,6 +82,22 @@ export function initSidebar() {
   toggleBtn.addEventListener('click', () => {
     const isNowCollapsed = !container.classList.contains('collapsed');
     applyCollapsedState(isNowCollapsed);
+  });
+
+  const installBtn = document.getElementById('sidebar-install-btn');
+  const installLabel = document.getElementById('sidebar-install-label');
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      await installApp();
+    });
+  }
+
+  window.addEventListener('pwa-installed', () => {
+    if (installLabel) installLabel.textContent = 'Installed System';
+  });
+
+  window.addEventListener('pwa-install-ready', () => {
+    if (installLabel && !isStandalone()) installLabel.textContent = 'Install App';
   });
 
   window.addEventListener('toggle-mobile-sidebar', () => {

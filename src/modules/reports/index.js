@@ -2,6 +2,7 @@ import db from '../../db.js';
 import * as xlsx from 'xlsx';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { showToast } from '../../utils/dialog.js';
 
 export async function render(container) {
     container.innerHTML = `
@@ -104,7 +105,7 @@ export async function render(container) {
         const accountId = accountSelect.value;
 
         if (!period) {
-            alert('Please select a period.');
+            showToast('Please select a period.', 'warning');
             return;
         }
 
@@ -114,7 +115,7 @@ export async function render(container) {
             transactions = await db.getAll('transactions');
         } catch (err) {
             console.error("Failed to load transactions", err);
-            alert("Could not load transactions.");
+            showToast("Could not load transactions.", 'danger');
             return;
         }
         
@@ -135,7 +136,7 @@ export async function render(container) {
         }
 
         if (transactions.length === 0) {
-            alert('No transactions found for the selected criteria.');
+            showToast('No transactions found for the selected criteria.', 'info');
             return;
         }
 
@@ -197,9 +198,10 @@ export async function render(container) {
             const title = type === 'monthly' ? period : period.split('-')[0];
             const filename = `Expense_Report_${title}.xlsx`;
             xlsx.writeFile(wb, filename);
+            showToast(`Excel report "${filename}" downloaded!`, 'success');
         } catch (err) {
             console.error('Failed to export Excel report:', err);
-            alert('Failed to generate Excel report.');
+            showToast('Failed to generate Excel report.', 'danger');
         }
     }
 
@@ -353,10 +355,12 @@ export async function render(container) {
             pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
             
             const filenameTitle = type === 'monthly' ? period : period.split('-')[0];
-            pdf.save(`Expense_Report_${filenameTitle}.pdf`);
+            const pdfFilename = `Expense_Report_${filenameTitle}.pdf`;
+            pdf.save(pdfFilename);
+            showToast(`PDF report "${pdfFilename}" downloaded!`, 'success');
         } catch (error) {
             console.error("PDF generation error", error);
-            alert("Failed to generate PDF. Check console for details.");
+            showToast("Failed to generate PDF. Check console for details.", 'danger');
         } finally {
             templateContainer.style.display = 'none';
             templateContainer.innerHTML = '';

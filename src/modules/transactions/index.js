@@ -7,13 +7,14 @@ import { getAll, getById, getByIndex, add as dbAdd, update as dbUpdate, remove a
 import { store } from '../../store.js';
 import { validateTransaction, createTransactionDefaults } from './schema.js';
 import {
-  ALL_CATEGORIES, EXPENSE_CATEGORIES, INCOME_CATEGORIES,
+  ALL_CATEGORIES,
   getCategoryById, getCategoriesByType, CATEGORY_MAP,
 } from './categories.js';
 import { generateRecurringInstances } from './recurring.js';
 import { convert } from '../../services/currency.js';
 import { recalculateBalance } from '../accounts/index.js';
 import { escapeHtml, safeAttr } from '../../utils/security.js';
+import { confirmModal, showToast } from '../../utils/dialog.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -27,7 +28,7 @@ const PAYMENT_LABELS = {
   card: 'Card', cheque: 'Cheque', rtgs: 'RTGS', other: 'Other',
 };
 
-const VIRTUAL_ROW_HEIGHT = 64; // px, for virtual scroll estimation
+const _VIRTUAL_ROW_HEIGHT = 64; // px, for virtual scroll estimation
 
 // ─── CRUD Functions ───────────────────────────────────────────────────────────
 
@@ -421,11 +422,11 @@ function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
-function getCatIcon(categoryId) {
+export function getCatIcon(categoryId) {
   return CATEGORY_MAP[categoryId]?.icon ?? '💰';
 }
 
-function getCatColor(categoryId) {
+export function getCatColor(categoryId) {
   return CATEGORY_MAP[categoryId]?.color ?? '#94a3b8';
 }
 
@@ -478,7 +479,7 @@ function renderTransactionRow(tx, bulkMode, isSelected, accounts) {
 
 // ─── Category Icon Grid ───────────────────────────────────────────────────────
 
-function renderCategoryGrid(type, selectedId, onSelect) {
+function renderCategoryGrid(type, selectedId, _onSelect) {
   const cats = getCategoriesByType(type === 'transfer' ? 'expense' : type);
   return `
     <div class="cat-grid" id="cat-grid">
@@ -997,7 +998,7 @@ async function _fileToBase64(file) {
 
 // ─── Toolbar ──────────────────────────────────────────────────────────────────
 
-function renderToolbar(container) {
+function renderToolbar(_container) {
   return `
     <div class="tx-toolbar" id="tx-toolbar">
       <div class="tx-toolbar-left">
@@ -1123,7 +1124,7 @@ function renderList(listContainer) {
 
   // Row click → open edit modal
   listContainer.querySelectorAll('.tx-row').forEach((row) => {
-    row.addEventListener('click', (e) => {
+    row.addEventListener('click', () => {
       if (moduleState.bulkMode) {
         // Toggle selection
         const id = row.dataset.id;
@@ -1163,12 +1164,21 @@ function renderList(listContainer) {
           if (id) await duplicateTransaction(id);
           renderList(listContainer);
           break;
-        case 'delete':
-          if (id && confirm('Delete this transaction?')) {
+        case 'delete': {
+          if (!id) break;
+          const ok = await confirmModal({
+            title: 'Delete Transaction',
+            message: 'Are you sure you want to delete this transaction?',
+            confirmText: 'Delete',
+            danger: true,
+          });
+          if (ok) {
             await deleteTransaction(id);
+            showToast('Transaction deleted', 'info');
             renderList(listContainer);
           }
           break;
+        }
         case 'split':
           if (tx) openSplitModal(tx, listContainer);
           break;
@@ -1309,8 +1319,15 @@ function attachToolbarListeners(container) {
   container.querySelector('#bulk-delete')?.addEventListener('click', async () => {
     const ids = [...moduleState.selectedIds];
     if (ids.length === 0) return;
-    if (!confirm(`Delete ${ids.length} transaction(s)?`)) return;
+    const ok = await confirmModal({
+      title: 'Delete Selected Transactions',
+      message: `Delete ${ids.length} transaction(s)? This action cannot be undone.`,
+      confirmText: `Delete ${ids.length}`,
+      danger: true,
+    });
+    if (!ok) return;
     for (const id of ids) await deleteTransaction(id);
+    showToast(`Deleted ${ids.length} transaction(s)`, 'info');
     moduleState.selectedIds.clear();
     moduleState.bulkMode = false;
     renderList(listContainer);
@@ -1352,6 +1369,18 @@ export default {
 
     const listContainer = container.querySelector('#tx-list-container');
     renderList(listContainer);
+
+    // Check for prefilled transfer action from Accounts module
+    const prefillStr = sessionStorage.getItem('fintrack_prefill_transfer');
+    if (prefillStr) {
+      sessionStorage.removeItem('fintrack_prefill_transfer');
+      try {
+        const prefill = JSON.parse(prefillStr);
+        openModal({ type: 'transfer', accountId: prefill.accountId });
+      } catch (_e) {
+        // ignore malformed data
+      }
+    }
 
     // Subscribe to store changes
     moduleState.unsubscribe = store.subscribe('transactions', () => {

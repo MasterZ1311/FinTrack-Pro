@@ -169,7 +169,13 @@ export function bufferToBase64(buffer) {
   for (const byte of buffer) {
     binary += String.fromCharCode(byte);
   }
-  return (typeof globalThis.btoa === 'function' ? globalThis.btoa(binary) : Buffer.from(binary, 'binary').toString('base64'));
+  if (typeof globalThis.btoa === 'function') {
+    return globalThis.btoa(binary);
+  }
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(binary, 'binary').toString('base64');
+  }
+  throw new Error('Base64 encoding not supported in this environment');
 }
 
 /**
@@ -178,7 +184,14 @@ export function bufferToBase64(buffer) {
  * @returns {Uint8Array}
  */
 export function base64ToBuffer(base64) {
-  const binary = (typeof globalThis.atob === 'function' ? globalThis.atob(base64) : Buffer.from(base64, 'base64').toString('binary'));
+  let binary = '';
+  if (typeof globalThis.atob === 'function') {
+    binary = globalThis.atob(base64);
+  } else if (typeof Buffer !== 'undefined') {
+    binary = Buffer.from(base64, 'base64').toString('binary');
+  } else {
+    throw new Error('Base64 decoding not supported in this environment');
+  }
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
